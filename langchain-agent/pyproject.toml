@@ -1,0 +1,8 @@
+[project]
+name = "attest-langchain-agent"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = ["attest-ai[langchain]>=0.4.1", "langchain-openai>=0.2", "langgraph>=0.2,<1.0", "pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
