@@ -1,4 +1,12 @@
-"""Full customer service agent — demonstrates a complete Attest-tested agent."""
+"""Multi-step customer service agent with delegation to specialist sub-agents.
+
+Demonstrates the @agent decorator and delegate() context manager for
+multi-agent trace construction. The agent flow:
+    classify intent → look up customer → delegate to specialist → respond
+
+This agent has ZERO external dependencies — all LLM calls and tool
+results are simulated via TraceBuilder to keep the example self-contained.
+"""
 
 from __future__ import annotations
 
@@ -11,10 +19,7 @@ from attest.trace import TraceBuilder
 
 @agent("customer-service")
 def customer_service(builder: TraceBuilder, user_message: str) -> dict[str, Any]:
-    """Multi-step customer service agent with routing and delegation.
-
-    Flow: classify intent -> route to specialist -> execute action -> respond
-    """
+    """Multi-step customer service agent with routing and delegation."""
     # Step 1: Classify intent
     builder.add_llm_call(
         name="gpt-4.1-mini",
@@ -63,29 +68,24 @@ def customer_service(builder: TraceBuilder, user_message: str) -> dict[str, Any]
         specialist.set_metadata(total_tokens=80, cost_usd=0.002, latency_ms=800)
 
     # Step 4: Generate final response
+    final_message = (
+        "Hi Jane, I've processed your refund of $129.99 for order ORD-5678. "
+        "Your refund ID is RFD-999 and you should see the funds within 3 business days. "
+        "As a valued Gold member, your refund has been prioritized."
+    )
     builder.add_llm_call(
         name="gpt-4.1",
         args={
             "model": "gpt-4.1",
             "messages": [{"role": "user", "content": "Compose final response with refund details"}],
         },
-        result={
-            "completion": (
-                "Hi Jane, I've processed your refund of $129.99 for order ORD-5678. "
-                "Your refund ID is RFD-999 and you should see the funds within 3 business days. "
-                "As a valued Gold member, your refund has been prioritized."
-            ),
-        },
+        result={"completion": final_message},
     )
 
     builder.set_metadata(total_tokens=200, cost_usd=0.005, latency_ms=1500, model="gpt-4.1")
 
     return {
-        "message": (
-            "Hi Jane, I've processed your refund of $129.99 for order ORD-5678. "
-            "Your refund ID is RFD-999 and you should see the funds within 3 business days. "
-            "As a valued Gold member, your refund has been prioritized."
-        ),
+        "message": final_message,
         "structured": {
             "intent": "refund",
             "refund_id": "RFD-999",

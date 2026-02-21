@@ -1,4 +1,4 @@
-"""Pytest configuration for customer service agent tests."""
+"""Pytest configuration for customer-service-agent example."""
 
 from __future__ import annotations
 
