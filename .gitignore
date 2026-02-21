@@ -9,6 +9,7 @@ build/
 # Environment
 .env
 .env.*
+!.env.example
 
 # Results (regenerated per run)
 **/results/*.json
@@ -18,3 +19,18 @@ build/
 .vscode/
 *.swp
 .DS_Store
+
+# Agentic tooling
+.claude/
+.gemini/
+.agent/
+.sage/
+
+# Attest cache
+.attest/
+
+# Binaries
+bin/
+
+# Lock files (regenerated per-machine via uv sync)
+uv.lock
