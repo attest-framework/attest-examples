@@ -1,0 +1,12 @@
+[project]
+name = "approach-comparison"
+version = "0.1.0"
+description = "Three-approach agent evaluation benchmark for attest"
+requires-python = ">=3.12"
+dependencies = [
+    "attest-ai",
+    "pytest>=8.0",
+]
+
+[tool.uv.sources]
+attest-ai = { path = "../../../attest/sdks/python", editable = true }
