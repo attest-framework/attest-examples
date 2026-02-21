@@ -1,0 +1,9 @@
+[project]
+name = "attest-google-adk-example"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = ["attest-ai>=0.4.1", "google-adk>=1.0", "pytest>=8.0", "pytest-asyncio>=0.23"]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+asyncio_mode = "auto"
