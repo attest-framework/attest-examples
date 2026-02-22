@@ -1,3 +1,7 @@
+[![Attest Examples](assets/banner.png)](https://github.com/attest-framework/attest-examples)
+
+---
+
 # attest-examples
 
 Showcase examples for [Attest](https://github.com/attest-framework/attest) — the AI agent evaluation framework.
@@ -21,35 +25,35 @@ See [quickstart/README.md](quickstart/README.md) for a step-by-step walkthrough.
 
 Each example targets a specific layer of Attest's assertion stack.
 
-| Example | Layer | Description |
-|---------|-------|-------------|
-| [semantic-similarity/](semantic-similarity/) | L5 — Embeddings | Cosine-similarity checks on response vectors |
-| [rag-chatbot/](rag-chatbot/) | L5 + Retrieval | Embedding assertions combined with retrieval faithfulness |
-| [llm-judge/](llm-judge/) | L6 — Quality gates | LLM-as-judge scoring with pass/fail thresholds |
-| [simulation/](simulation/) | L7 — Mock tools & personas | Simulated tool calls and synthetic user personas |
-| [multi-agent-workflow/](multi-agent-workflow/) | L8 — Trace trees | Assertion over multi-hop agent trace graphs |
-| [customer-service-agent/](customer-service-agent/) | All 8 layers | Full-stack evaluation across every assertion layer |
+| Example                                            | Layer                      | Description                                               |
+| -------------------------------------------------- | -------------------------- | --------------------------------------------------------- |
+| [semantic-similarity/](semantic-similarity/)       | L5 — Embeddings            | Cosine-similarity checks on response vectors              |
+| [rag-chatbot/](rag-chatbot/)                       | L5 + Retrieval             | Embedding assertions combined with retrieval faithfulness |
+| [llm-judge/](llm-judge/)                           | L6 — Quality gates         | LLM-as-judge scoring with pass/fail thresholds            |
+| [simulation/](simulation/)                         | L7 — Mock tools & personas | Simulated tool calls and synthetic user personas          |
+| [multi-agent-workflow/](multi-agent-workflow/)     | L8 — Trace trees           | Assertion over multi-hop agent trace graphs               |
+| [customer-service-agent/](customer-service-agent/) | All 8 layers               | Full-stack evaluation across every assertion layer        |
 
 ---
 
 ## Framework Integrations
 
-| Example | Description |
-|---------|-------------|
-| [langchain-agent/](langchain-agent/) | Wrap a LangChain agent with Attest assertions |
-| [llamaindex-agent/](llamaindex-agent/) | Evaluate a LlamaIndex query pipeline |
-| [google-adk/](google-adk/) | Assert over Google Agent Development Kit agents |
-| [crewai-adapter/](crewai-adapter/) | Plug Attest into a CrewAI multi-agent crew |
+| Example                                | Description                                     |
+| -------------------------------------- | ----------------------------------------------- |
+| [langchain-agent/](langchain-agent/)   | Wrap a LangChain agent with Attest assertions   |
+| [llamaindex-agent/](llamaindex-agent/) | Evaluate a LlamaIndex query pipeline            |
+| [google-adk/](google-adk/)             | Assert over Google Agent Development Kit agents |
+| [crewai-adapter/](crewai-adapter/)     | Plug Attest into a CrewAI multi-agent crew      |
 
 ---
 
 ## Production Patterns
 
-| Example | Description |
-|---------|-------------|
-| [continuous-eval/](continuous-eval/) | Run assertions in CI on every deployment |
+| Example                              | Description                                   |
+| ------------------------------------ | --------------------------------------------- |
+| [continuous-eval/](continuous-eval/) | Run assertions in CI on every deployment      |
 | [drift-detection/](drift-detection/) | Alert on assertion score regression over time |
-| [plugin-system/](plugin-system/) | Register custom assertion plugins |
+| [plugin-system/](plugin-system/)     | Register custom assertion plugins             |
 
 ---
 
