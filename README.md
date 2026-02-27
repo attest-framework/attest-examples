@@ -57,6 +57,23 @@ Each example targets a specific layer of Attest's assertion stack.
 
 ---
 
+## TypeScript Examples
+
+TypeScript ports using `@attest-ai/core` and `@attest-ai/vitest` with vitest.
+
+| Example                                              | Description                                    |
+| ---------------------------------------------------- | ---------------------------------------------- |
+| [quickstart-ts/](quickstart-ts/)                     | Customer support agent — layers 1-4            |
+| [openai-adapter-ts/](openai-adapter-ts/)             | OpenAI chat + tool calling traces              |
+| [schema-assertions-ts/](schema-assertions-ts/)       | Layer 1 schema validation (output, fields, tools) |
+| [content-assertions-ts/](content-assertions-ts/)     | Layer 4 content checks (keywords, regex, forbids) |
+
+```bash
+cd quickstart-ts && pnpm install && pnpm test
+```
+
+---
+
 ## Running Examples
 
 ```bash
