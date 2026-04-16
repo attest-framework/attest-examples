@@ -1,0 +1,62 @@
+name: Examples CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  ATTEST_SIMULATION: "1"
+
+jobs:
+  python-examples:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        example:
+          - quickstart
+          - customer-service-agent
+          - continuous-eval
+          - drift-detection
+          - llm-judge
+          - multi-agent-workflow
+          - plugin-system
+          - rag-chatbot
+          - semantic-similarity
+          - simulation
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install and test
+        run: |
+          cd ${{ matrix.example }}
+          uv sync
+          uv run pytest -v
+
+  # TypeScript examples require the engine binary for evaluate().
+  # The @attest-ai/vitest plugin doesn't yet support simulation mode.
+  # Tracked for Phase 4: add simulation support to TS vitest plugin.
+  typescript-examples:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        example:
+          - quickstart-ts
+          - schema-assertions-ts
+          - content-assertions-ts
+          - openai-adapter-ts
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Typecheck
+        run: |
+          cd ${{ matrix.example }}
+          npm install
+          npx tsc --noEmit
