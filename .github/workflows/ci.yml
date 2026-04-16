@@ -37,6 +37,9 @@ jobs:
           uv sync
           uv run pytest -v
 
+  # TypeScript examples require the engine binary for evaluate().
+  # The @attest-ai/vitest plugin doesn't yet support simulation mode.
+  # Tracked for Phase 4: add simulation support to TS vitest plugin.
   typescript-examples:
     runs-on: ubuntu-latest
     strategy:
@@ -52,8 +55,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
-      - name: Install and test
+      - name: Typecheck
         run: |
           cd ${{ matrix.example }}
           npm install
-          npx vitest run
+          npx tsc --noEmit
