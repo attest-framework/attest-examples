@@ -6,7 +6,7 @@ from agent import customer_support
 from attest.expect import expect
 
 
-def test_customer_support_refund(attest: object) -> None:
+def test_customer_support_refund(attest) -> None:
     """Test the customer support agent processes refunds correctly.
 
     Demonstrates Attest assertions across all layers:
