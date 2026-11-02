@@ -2,10 +2,18 @@
 
 from __future__ import annotations
 
+import os
+
+import pytest
 from agent import build_agent
 from attest.adapters.llamaindex import LlamaIndexInstrumentationHandler
 from attest.expect import expect
 from attest.result import AgentResult
+
+# The agent calls OpenAI; without a key there is nothing to evaluate.
+pytestmark = pytest.mark.skipif(
+    not os.environ.get("OPENAI_API_KEY"), reason="live OpenAI example: set OPENAI_API_KEY"
+)
 
 
 def test_rag_agent_answers_product_question(attest) -> None:

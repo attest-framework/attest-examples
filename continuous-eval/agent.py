@@ -54,7 +54,7 @@ def build_assertions() -> list[Assertion]:
         Assertion(
             assertion_id="output-check",
             type="content",
-            spec={"check": "non_empty"},
+            spec={"target": "output.message", "check": "regex_match", "value": r"\S"},
         ),
     ]
 

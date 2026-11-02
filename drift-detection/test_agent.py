@@ -1,28 +1,25 @@
 """Tests for drift detection using constraint assertions.
 
-Runs in simulation mode (ATTEST_SIMULATION=1) for deterministic results.
 Demonstrates comparing baseline vs drifted traces against the same
-budget assertions to detect performance degradation.
-
-In production, these assertions would run against a real engine where
-constraint assertions (Layer 2) fail when metadata values exceed
-thresholds. Simulation mode returns pass for everything, so the tests
-here verify trace structure and metadata values directly.
+budget assertions (Layer 2) to detect performance degradation. The
+engine evaluates both sets through a direct client, so the drift it
+catches in the drifted traces does not appear as hard failures in the
+Attest report: every baseline assertion passes, and every drifted trace
+fails at least one budget.
 """
 
 from __future__ import annotations
 
-import os
+from collections.abc import AsyncIterator
 
 import pytest
 
 from attest import Trace
+from attest.client import AttestClient
+from attest.engine_manager import EngineManager
 from attest.expect import expect
 
 from agent import build_baseline_traces, build_drift_assertions, build_drifted_traces
-
-# Force simulation mode
-os.environ["ATTEST_SIMULATION"] = "1"
 
 
 @pytest.fixture
@@ -35,31 +32,29 @@ def drifted_traces() -> list[Trace]:
     return build_drifted_traces()
 
 
-def test_baseline_traces_within_budget(attest: object, baseline_traces: list[Trace]) -> None:
-    """Baseline traces should be within cost, token, and latency budgets.
+@pytest.fixture
+async def client() -> AsyncIterator[AttestClient]:
+    async with EngineManager() as engine:
+        yield AttestClient(engine)
 
-    Verifies the trace metadata values are below the thresholds defined
-    in the drift assertions.
-    """
+
+async def test_baseline_traces_within_budget(
+    client: AttestClient, baseline_traces: list[Trace]
+) -> None:
+    """Every baseline trace passes the cost, token, and latency budgets."""
     for trace in baseline_traces:
-        assert trace.metadata is not None
-        assert trace.metadata.cost_usd is not None and trace.metadata.cost_usd <= 0.01
-        assert trace.metadata.total_tokens is not None and trace.metadata.total_tokens <= 200
-        assert trace.metadata.latency_ms is not None and trace.metadata.latency_ms <= 1000
+        result = await client.evaluate_batch(trace, build_drift_assertions())
+        assert [r.status for r in result.results] == ["pass"] * len(result.results)
 
 
-def test_drifted_traces_exceed_budget(drifted_traces: list[Trace]) -> None:
-    """Drifted traces should exceed at least one budget threshold.
-
-    Validates that the drift scenarios actually represent degradation
-    by checking that cost, tokens, or latency exceed the baseline limits.
-    """
+async def test_drifted_traces_exceed_budget(
+    client: AttestClient, drifted_traces: list[Trace]
+) -> None:
+    """The engine flags every drifted trace on at least one budget."""
     for trace in drifted_traces:
-        assert trace.metadata is not None
-        exceeds_cost = trace.metadata.cost_usd is not None and trace.metadata.cost_usd > 0.01
-        exceeds_tokens = trace.metadata.total_tokens is not None and trace.metadata.total_tokens > 200
-        exceeds_latency = trace.metadata.latency_ms is not None and trace.metadata.latency_ms > 1000
-        assert exceeds_cost or exceeds_tokens or exceeds_latency
+        result = await client.evaluate_batch(trace, build_drift_assertions())
+        failed = [r.assertion_id for r in result.results if r.status == "hard_fail"]
+        assert failed, f"no budget caught drift in trace {trace.trace_id}"
 
 
 def test_drift_detection_comparison(baseline_traces: list[Trace], drifted_traces: list[Trace]) -> None:
@@ -81,6 +76,5 @@ def test_drift_detection_comparison(baseline_traces: list[Trace], drifted_traces
 def test_baseline_output_not_empty(attest: object, baseline_traces: list[Trace]) -> None:
     """Each baseline trace should have non-empty output."""
     for trace in baseline_traces:
-        chain = expect(trace).output_not_contains("")
-        # In simulation mode, evaluate always passes
+        chain = expect(trace).output_matches_regex(r"\S")
         attest.evaluate(chain)  # type: ignore[union-attr]

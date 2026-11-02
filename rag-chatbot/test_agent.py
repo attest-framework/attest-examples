@@ -43,10 +43,10 @@ def test_rag_answer_grounded_in_context(attest) -> None:
     chain = (
         expect(result)
         # L4: Content — should mention installation methods
-        .output_has_any_keyword(["pip install", "npm install", "attest-ai"])
+        .output_has_any_keyword(["uv add", "pnpm add", "attest-ai"])
         # L5: Semantic similarity to expected answer
         .output_similar_to(
-            "You can install Attest using pip or npm package managers.",
+            "You can install Attest using the uv or pnpm package managers.",
             threshold=0.7,
         )
         # L6: Judge — is the answer factually grounded?

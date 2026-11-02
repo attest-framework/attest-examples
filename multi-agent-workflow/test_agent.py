@@ -60,7 +60,7 @@ def test_researcher_output_quality(attest) -> None:
         # Layer 8: Check sub-agent output content
         .agent_output_contains("researcher", "testing")
         # Layer 8: Verify data flows from researcher to writer
-        .cross_agent_data_flow("researcher", "writer", "research")
+        .cross_agent_data_flow("researcher", "writer", "message")
         # Layer 4: Final output should reflect research
         .output_contains("testing")
     )

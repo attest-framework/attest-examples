@@ -2,10 +2,18 @@
 
 from __future__ import annotations
 
+import os
+
+import pytest
 from agent import run_agent
 from attest.adapters.langchain import LangChainAdapter
 from attest.expect import expect
 from attest.result import AgentResult
+
+# The agent calls OpenAI; without a key there is nothing to evaluate.
+pytestmark = pytest.mark.skipif(
+    not os.environ.get("OPENAI_API_KEY"), reason="live OpenAI example: set OPENAI_API_KEY"
+)
 
 
 def test_weather_agent_uses_tools(attest) -> None:

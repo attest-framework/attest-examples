@@ -1,0 +1,7 @@
+# Merge policy for `attest policy evaluate --report <report> --policy attest.policy.yaml`.
+# Exit 0: pass. Exit 1: a blocking rule failed. Exit 2: warnings only.
+layers:
+  0:  # layer 0 caps every layer together
+    max_hard_fails: 0
+# Assertions that could not run (no judge configured, simulation) warn instead of block.
+not_evaluated: warn

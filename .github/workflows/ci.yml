@@ -1,47 +1,102 @@
 name: Examples CI
 
+# Every example runs on the published attest release it pins, against the real
+# engine. Layers 1-4 and 7 evaluate for real; judge and embedding assertions
+# have no provider key in CI, so their tests skip as not evaluated
+# (provider_not_configured) and the policy warns (exit 2) instead of passing.
+#
+# Per example: the test step records its outcome and continues, so the Attest
+# report is always uploaded, the merge policy evaluated and the pull request
+# annotated; the last step fails the job when the tests failed.
+
 on:
   push:
     branches: [main]
   pull_request:
 
-env:
-  ATTEST_SIMULATION: "1"
+permissions:
+  contents: read
 
 jobs:
   python-examples:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     strategy:
       fail-fast: false
       matrix:
         example:
           - quickstart
-          - customer-service-agent
           - continuous-eval
+          - crewai-adapter
+          - customer-service-agent
           - drift-detection
+          - google-adk
+          - langchain-agent
+          - llamaindex-agent
           - llm-judge
           - multi-agent-workflow
           - plugin-system
           - rag-chatbot
           - semantic-similarity
           - simulation
+    defaults:
+      run:
+        working-directory: ${{ matrix.example }}
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v6
-      - uses: actions/setup-python@v5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.12"
-      - name: Install and test
+      - name: Install dependencies
+        run: uv sync
+      - name: Run tests
+        id: tests
+        continue-on-error: true
+        # --rootdir=.. makes report paths repo-relative (quickstart/test_agent.py),
+        # so annotations land on the pull request diff.
+        run: uv run pytest -v --rootdir=.. --attest-report=attest-report.json
+      - name: Upload the Attest report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: attest-report-${{ matrix.example }}
+          path: ${{ matrix.example }}/attest-report.json
+          if-no-files-found: error
+      - name: Evaluate the merge policy
+        if: always()
         run: |
-          cd ${{ matrix.example }}
-          uv sync
-          uv run pytest -v
+          set +e
+          uv run attest policy evaluate --report attest-report.json --policy ../attest.policy.yaml
+          code=$?
+          if [ "$code" -eq 2 ]; then
+            echo "::warning::attest policy: warnings only (exit 2)"
+            exit 0
+          fi
+          exit "$code"
+      - name: Annotate the pull request
+        # Fork pull requests get a read-only token that cannot post reviews; the last step
+        # still fails the job when tests failed.
+        if: >-
+          always() && github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        uses: attest-framework/attest/.github/actions/pr-annotate@v1.0.0-rc.1
+        with:
+          report: ${{ matrix.example }}/attest-report.json
+      - name: Fail the job when tests failed
+        if: always() && steps.tests.outcome == 'failure'
+        run: |
+          echo "::error::pytest failed; see the Run tests step"
+          exit 1
 
-  # TypeScript examples require the engine binary for evaluate().
-  # The @attest-ai/vitest plugin doesn't yet support simulation mode.
-  # Tracked for Phase 4: add simulation support to TS vitest plugin.
   typescript-examples:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     strategy:
       fail-fast: false
       matrix:
@@ -50,13 +105,128 @@ jobs:
           - schema-assertions-ts
           - content-assertions-ts
           - openai-adapter-ts
+    defaults:
+      run:
+        working-directory: ${{ matrix.example }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Typecheck
+        run: pnpm typecheck
+      - name: Run tests
+        id: tests
+        continue-on-error: true
+        run: >-
+          pnpm exec vitest run --reporter=default --reporter=@attest-ai/vitest/reporter
+          --outputFile.attest=attest-report.json
+      - name: Make report paths repo-relative
+        # Vitest reports paths relative to its root (the example directory); the
+        # annotations need the path as it appears in the pull request diff.
+        if: always()
+        env:
+          EXAMPLE: ${{ matrix.example }}
         run: |
-          cd ${{ matrix.example }}
-          npm install
-          npx tsc --noEmit
+          jq --arg dir "$EXAMPLE" \
+            '(.results[]?, .tests[]?) |= (if (.file | type) == "string" then .file = "\($dir)/\(.file)" else . end)' \
+            attest-report.json > attest-report.tmp.json
+          mv attest-report.tmp.json attest-report.json
+      - name: Upload the Attest report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: attest-report-${{ matrix.example }}
+          path: ${{ matrix.example }}/attest-report.json
+          if-no-files-found: error
+      - name: Evaluate the merge policy
+        if: always()
+        run: |
+          set +e
+          pnpm exec attest policy evaluate --report attest-report.json --policy ../attest.policy.yaml
+          code=$?
+          if [ "$code" -eq 2 ]; then
+            echo "::warning::attest policy: warnings only (exit 2)"
+            exit 0
+          fi
+          exit "$code"
+      - name: Annotate the pull request
+        if: >-
+          always() && github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        uses: attest-framework/attest/.github/actions/pr-annotate@v1.0.0-rc.1
+        with:
+          report: ${{ matrix.example }}/attest-report.json
+      - name: Fail the job when tests failed
+        if: always() && steps.tests.outcome == 'failure'
+        run: |
+          echo "::error::vitest failed; see the Run tests step"
+          exit 1
+
+  # Advisory: runs every example against attest main (unreleased), so a change on
+  # main that would break the examples shows up before the next release. Its
+  # failure does not block a pull request; the released-pin jobs above do.
+  edge:
+    name: edge (attest main, advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: attest-framework/attest/.github/actions/setup-attest@v1.0.0-rc.1
+        id: attest
+        with:
+          ref: main
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Python examples on attest main
+        env:
+          ATTEST_ENGINE_PATH: ${{ steps.attest.outputs.engine-path }}
+          ATTEST_SOURCE: ${{ steps.attest.outputs.source-dir }}
+        run: |
+          set -uo pipefail
+          failed=()
+          for dir in */; do
+            [ -f "$dir/pyproject.toml" ] || continue
+            echo "::group::$dir"
+            (cd "$dir" && uv sync && uv pip install -e "$ATTEST_SOURCE/sdks/python" && uv run --no-sync pytest -v) \
+              || failed+=("$dir")
+            echo "::endgroup::"
+          done
+          if [ "${#failed[@]}" -gt 0 ]; then
+            echo "::error::failed on attest main: ${failed[*]}"
+            exit 1
+          fi
+      - name: TypeScript examples on attest main
+        if: always()
+        env:
+          ATTEST_ENGINE_PATH: ${{ steps.attest.outputs.engine-path }}
+          CORE_TARBALL: ${{ steps.attest.outputs.core-tarball }}
+          VITEST_TARBALL: ${{ steps.attest.outputs.vitest-tarball }}
+        run: |
+          set -uo pipefail
+          failed=()
+          for dir in *-ts/; do
+            echo "::group::$dir"
+            (cd "$dir" && pnpm install --frozen-lockfile && pnpm add "$CORE_TARBALL" "$VITEST_TARBALL" && pnpm test) \
+              || failed+=("$dir")
+            echo "::endgroup::"
+          done
+          if [ "${#failed[@]}" -gt 0 ]; then
+            echo "::error::failed on attest main: ${failed[*]}"
+            exit 1
+          fi

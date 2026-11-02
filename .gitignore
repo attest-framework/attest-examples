@@ -17,6 +17,7 @@ build/
 
 # Results (regenerated per run)
 **/results/*.json
+attest-report.json
 
 # IDE
 .idea/

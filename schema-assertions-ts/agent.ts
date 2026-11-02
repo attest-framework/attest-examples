@@ -45,22 +45,24 @@ export const recommendationAgent = agent(
 
     return {
       message: "Here are my top recommendations for you.",
-      recommendations: [
-        {
-          id: "P001",
-          name: "Widget Pro",
-          price: 29.99,
-          category: "electronics",
-          in_stock: true,
-        },
-        {
-          id: "P002",
-          name: "Gadget Plus",
-          price: 49.99,
-          category: "electronics",
-          in_stock: true,
-        },
-      ],
+      structured: {
+        recommendations: [
+          {
+            id: "P001",
+            name: "Widget Pro",
+            price: 29.99,
+            category: "electronics",
+            in_stock: true,
+          },
+          {
+            id: "P002",
+            name: "Gadget Plus",
+            price: 49.99,
+            category: "electronics",
+            in_stock: true,
+          },
+        ],
+      },
     };
   },
 );

@@ -4,7 +4,21 @@
 
 # attest-examples
 
-Showcase examples for [Attest](https://github.com/attest-framework/attest) — the AI agent evaluation framework.
+Showcase examples for [Attest](https://github.com/attest-framework/attest) — the AI agent evaluation framework. Documentation: [attest-framework.github.io](https://attest-framework.github.io/).
+
+This repository holds one small, copyable example per feature or framework, and every example runs on the latest published release: `attest-ai==1.0.0rc1` and `@attest-ai/core` / `@attest-ai/vitest` `1.0.0-rc.1`. For one end-to-end story — incident, reproduction, fix, blocked regression — see [refund-desk](https://github.com/attest-framework/refund-desk).
+
+| Repo | Role | Tracks |
+|---|---|---|
+| `attest-examples` | One small, copyable example per feature or framework | Latest published release |
+| [`refund-desk`](https://github.com/attest-framework/refund-desk) | One end-to-end story: incident → reproduction → fix → blocked regression | attest `main` until 1.0.0, then 1.0.x |
+
+To add Attest to your own project:
+
+```bash
+uv add attest-ai==1.0.0rc1                                        # Python
+pnpm add -D @attest-ai/core@1.0.0-rc.1 @attest-ai/vitest@1.0.0-rc.1 vitest   # TypeScript
+```
 
 ---
 
@@ -85,7 +99,13 @@ make test  EXAMPLE=llm-judge
 make test-all
 ```
 
-Requires [uv](https://github.com/astral-sh/uv) and a `.env` file — see [`.env.example`](.env.example).
+Requires [uv](https://github.com/astral-sh/uv) for Python and [pnpm](https://pnpm.io) for TypeScript.
+
+No API key is needed. Every example evaluates against the real Attest engine: schema, constraint, trace, content and trace-tree assertions (layers 1–4 and 7) run on every test. Without a provider key, tests that also use embeddings (L5) or an LLM judge (L6) are skipped as `not evaluated: provider_not_configured`, and the framework examples that call a live model (`langchain-agent`, `llamaindex-agent`, `google-adk`) are skipped with the key they need. Export the keys listed in [`.env.example`](.env.example) to run them.
+
+## CI
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs each example on the pinned release, writes an Attest report, evaluates [`attest.policy.yaml`](attest.policy.yaml) (any hard failure blocks; not-evaluated assertions warn) and annotates the pull request with each failed assertion at its test's line. An advisory `edge` job runs the same examples against attest `main`.
 
 ---
 
