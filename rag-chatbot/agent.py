@@ -11,8 +11,8 @@ from attest.trace import TraceBuilder
 # Simulated knowledge base
 KNOWLEDGE_BASE: dict[str, str] = {
     "install": (
-        "Install Attest with: pip install attest-ai (Python) or "
-        "npm install @attest-ai/core (Node.js)."
+        "Install Attest with: uv add attest-ai (Python) or "
+        "pnpm add -D @attest-ai/core @attest-ai/vitest (Node.js)."
     ),
     "assertion": (
         "Attest assertions are organized in layers: Schema, Constraints, "
