@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 import pytest
@@ -13,6 +14,12 @@ from agent import travel_assistant
 from attest.adapters.google_adk import GoogleADKAdapter
 from attest.expect import expect
 from attest.result import AgentResult
+
+# The agent calls Gemini; without a key there is nothing to evaluate.
+pytestmark = pytest.mark.skipif(
+    not (os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")),
+    reason="live Gemini example: set GOOGLE_API_KEY or GEMINI_API_KEY",
+)
 
 
 @pytest.fixture
