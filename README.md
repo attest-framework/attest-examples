@@ -4,7 +4,7 @@
 
 # attest-examples
 
-Showcase examples for [Attest](https://github.com/attest-framework/attest) — the AI agent evaluation framework. Documentation: [attest-framework.github.io/attest-website](https://attest-framework.github.io/attest-website/).
+Showcase examples for [Attest](https://github.com/attest-framework/attest) — the AI agent evaluation framework. Documentation: [attest-framework.github.io](https://attest-framework.github.io/).
 
 This repository holds one small, copyable example per feature or framework, and every example runs on the latest published release: `attest-ai==1.0.0rc1` and `@attest-ai/core` / `@attest-ai/vitest` `1.0.0-rc.1`. For one end-to-end story — incident, reproduction, fix, blocked regression — see [refund-desk](https://github.com/attest-framework/refund-desk).
 
