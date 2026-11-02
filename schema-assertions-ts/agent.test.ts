@@ -52,7 +52,7 @@ describe("schema assertions", () => {
     });
 
     const chain = attestExpect(result)
-      .outputFieldMatchesSchema("recommendations", {
+      .outputFieldMatchesSchema("structured.recommendations", {
         type: "array",
         minItems: 1,
         items: {

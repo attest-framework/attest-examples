@@ -1,14 +1,13 @@
 """Tests for continuous evaluation using ContinuousEvalRunner.
 
-Runs in simulation mode (ATTEST_SIMULATION=1) so no engine binary
-or API keys are needed. Demonstrates queue-based background evaluation,
-sampling, and direct trace evaluation.
+Evaluates against the real engine with deterministic assertions only
+(layers 2 and 4), so no API keys are needed. Demonstrates queue-based
+background evaluation, sampling, and direct trace evaluation.
 """
 
 from __future__ import annotations
 
-import os
-from typing import Any
+from collections.abc import AsyncIterator
 
 import pytest
 
@@ -18,9 +17,6 @@ from attest.continuous import ContinuousEvalRunner, Sampler
 from attest.engine_manager import EngineManager
 
 from agent import build_assertions, build_traces, create_runner
-
-# Force simulation mode — deterministic pass results, no engine needed
-os.environ["ATTEST_SIMULATION"] = "1"
 
 
 @pytest.fixture
@@ -34,14 +30,14 @@ def assertions() -> list[Assertion]:
 
 
 @pytest.fixture
-def client() -> AttestClient:
-    engine = EngineManager(engine_path="/dev/null")
-    return AttestClient(engine)
+async def client() -> AsyncIterator[AttestClient]:
+    async with EngineManager() as engine:
+        yield AttestClient(engine)
 
 
 @pytest.mark.asyncio
 async def test_direct_evaluation(client: AttestClient, traces: list[Trace], assertions: list[Assertion]) -> None:
-    """Evaluate traces directly via client.evaluate_batch in simulation mode.
+    """Evaluate traces directly via client.evaluate_batch.
 
     Verifies each trace produces passing results for all assertions.
     """
