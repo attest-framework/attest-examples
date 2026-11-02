@@ -33,7 +33,14 @@ def customer_support(builder: TraceBuilder, order_id: str) -> dict[str, Any]:
         result={"response": "I will process the refund for this order."},
     )
 
-    # First tool: look up the order details
+    # Refund first: process the refund
+    builder.add_tool_call(
+        name="process_refund",
+        args={"order_id": order_id, "amount": 89.99},
+        result={"refund_id": "RFD-001", "status": "processed"},
+    )
+
+    # Then: look up the order details
     builder.add_tool_call(
         name="lookup_order",
         args={"order_id": order_id},
@@ -43,13 +50,6 @@ def customer_support(builder: TraceBuilder, order_id: str) -> dict[str, Any]:
             "amount": 89.99,
             "customer": "John Doe",
         },
-    )
-
-    # Second tool: process the refund
-    builder.add_tool_call(
-        name="process_refund",
-        args={"order_id": order_id, "amount": 89.99},
-        result={"refund_id": "RFD-001", "status": "processed"},
     )
 
     # Set metadata with sample values (no actual LLM API calls)
