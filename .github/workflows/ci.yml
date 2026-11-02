@@ -16,11 +16,13 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   python-examples:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     strategy:
       fail-fast: false
       matrix:
@@ -92,6 +94,9 @@ jobs:
 
   typescript-examples:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     strategy:
       fail-fast: false
       matrix:
@@ -193,22 +198,35 @@ jobs:
           ATTEST_ENGINE_PATH: ${{ steps.attest.outputs.engine-path }}
           ATTEST_SOURCE: ${{ steps.attest.outputs.source-dir }}
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          failed=()
           for dir in */; do
             [ -f "$dir/pyproject.toml" ] || continue
             echo "::group::$dir"
-            (cd "$dir" && uv sync && uv pip install -e "$ATTEST_SOURCE/sdks/python" && uv run --no-sync pytest -v)
+            (cd "$dir" && uv sync && uv pip install -e "$ATTEST_SOURCE/sdks/python" && uv run --no-sync pytest -v) \
+              || failed+=("$dir")
             echo "::endgroup::"
           done
+          if [ "${#failed[@]}" -gt 0 ]; then
+            echo "::error::failed on attest main: ${failed[*]}"
+            exit 1
+          fi
       - name: TypeScript examples on attest main
+        if: always()
         env:
           ATTEST_ENGINE_PATH: ${{ steps.attest.outputs.engine-path }}
           CORE_TARBALL: ${{ steps.attest.outputs.core-tarball }}
           VITEST_TARBALL: ${{ steps.attest.outputs.vitest-tarball }}
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          failed=()
           for dir in *-ts/; do
             echo "::group::$dir"
-            (cd "$dir" && pnpm install --frozen-lockfile && pnpm add "$CORE_TARBALL" "$VITEST_TARBALL" && pnpm test)
+            (cd "$dir" && pnpm install --frozen-lockfile && pnpm add "$CORE_TARBALL" "$VITEST_TARBALL" && pnpm test) \
+              || failed+=("$dir")
             echo "::endgroup::"
           done
+          if [ "${#failed[@]}" -gt 0 ]; then
+            echo "::error::failed on attest main: ${failed[*]}"
+            exit 1
+          fi
