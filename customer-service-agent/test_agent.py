@@ -54,14 +54,16 @@ def test_refund_flow_trace_and_content(attest: Any) -> None:
     attest.evaluate(chain)
 
     # Layer 3 checks one trace's own steps. The eligibility check and the refund
-    # run inside the delegated specialist, so their order is asserted on its sub-trace.
+    # run inside the delegated specialist, so they are asserted on its sub-trace.
     specialist = next(
         step.sub_trace
         for step in result.trace.steps
         if step.type == "agent_call" and step.sub_trace is not None
     )
     attest.evaluate(
-        expect(specialist).tools_called_in_order(["check_refund_eligibility", "process_refund"])
+        expect(specialist)
+        .tools_called_in_order(["check_refund_eligibility", "process_refund"])
+        .forbidden_tools(["delete_customer", "admin_override"])
     )
 
 
