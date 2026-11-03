@@ -6,7 +6,7 @@
 
 Showcase examples for [Attest](https://github.com/attest-framework/attest) — the AI agent evaluation framework. Documentation: [attest-framework.github.io](https://attest-framework.github.io/).
 
-This repository holds one small, copyable example per feature or framework, and every example runs on the latest published release: `attest-ai==1.0.0rc2` and `@attest-ai/core` / `@attest-ai/vitest` `1.0.0-rc.2`. For one end-to-end story — incident, reproduction, fix, blocked regression — see [refund-desk](https://github.com/attest-framework/refund-desk).
+This repository holds one small, copyable example per feature or framework, and every example runs on the latest published release: `attest-ai==1.0.0rc3` and `@attest-ai/core` / `@attest-ai/vitest` `1.0.0-rc.3`. For one end-to-end story — incident, reproduction, fix, blocked regression — see [refund-desk](https://github.com/attest-framework/refund-desk).
 
 | Repo | Role | Tracks |
 |---|---|---|
@@ -16,8 +16,8 @@ This repository holds one small, copyable example per feature or framework, and 
 To add Attest to your own project:
 
 ```bash
-uv add "attest-ai==1.0.0rc2"                                                         # Python
-npm install -D "@attest-ai/core@1.0.0-rc.2" "@attest-ai/vitest@1.0.0-rc.2" vitest   # TypeScript
+uv add "attest-ai==1.0.0rc3"                                                         # Python
+npm install -D "@attest-ai/core@1.0.0-rc.3" "@attest-ai/vitest@1.0.0-rc.3" vitest   # TypeScript
 ```
 
 ---
