@@ -63,7 +63,7 @@ Each example targets a specific layer of Attest's assertion stack.
 
 ## Framework capture through OpenTelemetry
 
-These frameworks are captured with `attest capture` through their own OpenTelemetry instrumentation, with no attest-specific adapter. Each example commits its fixture, the test `attest capture` drafted, and a strict replay test that runs the real agent with zero model calls and no provider key. Re-capture against [`scripted-model/`](scripted-model/), a stdlib model server.
+These frameworks are captured with `attest capture` through their own OpenTelemetry instrumentation, with no attest-specific adapter. Each example commits its fixture and the test `attest capture` drafted; all but the Claude Agent SDK examples also commit a strict replay test that runs the real agent with zero model calls and no provider key (Claude Code puts the working directory, OS and date into its requests, which replay does not normalize yet; see those READMEs). Re-capture against [`scripted-model/`](scripted-model/), a stdlib model server.
 
 | Example | Framework | Instrumentation | Run |
 |---|---|---|---|
