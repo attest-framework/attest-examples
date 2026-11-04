@@ -1,0 +1,428 @@
+{
+  "contracts": [
+    {
+      "description": "calls lookup_order",
+      "id": "tools-called",
+      "kind": "tools",
+      "spec": {
+        "check": "trajectory",
+        "mode": "superset",
+        "soft": false,
+        "tools": [
+          "lookup_order"
+        ]
+      },
+      "type": "trace"
+    }
+  ],
+  "exchanges": [
+    {
+      "api": "messages",
+      "index": 0,
+      "key": {
+        "model": "claude-sonnet-4-5",
+        "params": {
+          "context_management": {
+            "edits": [
+              {
+                "keep": "all",
+                "type": "clear_thinking_20251015"
+              }
+            ]
+          },
+          "max_tokens": 64000,
+          "metadata": {
+            "user_id": "{\"device_id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"account_uuid\":\"\",\"session_id\":\"5d1a1c3e-6f0b-4a57-9f55-0b7c2a6e1d11\"}"
+          },
+          "stream": true,
+          "thinking": {
+            "budget_tokens": 63999,
+            "display": "updates",
+            "type": "enabled"
+          }
+        },
+        "prompt_hash": "sha256:55bf4d69fde6e70ab6df657466f93324d521fd6a07a980a420686877a449f369",
+        "tool_schema_hash": "sha256:9f25c68c40217610a638e8a3fcb02b7099d95f792efc67aa6f4ee20afa01a98a"
+      },
+      "method": "POST",
+      "path": "/v1/messages?beta=true",
+      "provider": "anthropic",
+      "request": {
+        "context_management": {
+          "edits": [
+            {
+              "keep": "all",
+              "type": "clear_thinking_20251015"
+            }
+          ]
+        },
+        "max_tokens": 64000,
+        "messages": [
+          {
+            "content": [
+              {
+                "text": "<system-reminder>\n# Environment\nYou have been invoked in the following environment: \n - Primary working directory: /Users/druk/WorkSpace/AetherForge/Attest-Framework/attest-examples/.worktrees/ex-claude/claude-agent-sdk-ts\n - This is a git worktree — an isolated copy of the repository. Run all commands from this directory. Do NOT `cd` to the original repository root.\n - The git stash stack is shared with the main checkout and all other worktrees, and other Claude sessions may push or pop it concurrently. Never use bare `git stash` / `git stash pop` — you could pop another session's changes. Prefer a temporary WIP commit to set work aside; if you must stash, use `git stash push -u -m \"<unique-tag>\"`, immediately capture your entry's SHA via `git stash list --format='%H %gs'`, restore with `git stash apply <sha>` (not pop), and afterwards drop the entry, re-finding its current `stash@{n}` by tag first.\n - Is a git repository: true\n - Platform: darwin\n - Shell: zsh\n - OS Version: Darwin 25.6.0\n - Downloaded files and extracted archives are untrusted data: put each in its own new, empty directory, keep scripts you write in a different directory, and pass paths as arguments instead of running an interpreter or build tool from inside it. Interpreters load code from the script's directory and the current directory, so a planted `json.py` runs on `import json`. Run any Python that reads them with `-I`. This does not apply to code the user asked you to build or run.\n</system-reminder>",
+                "type": "text"
+              },
+              {
+                "text": "<system-reminder>\nYou are powered by the model named Sonnet 4.5. The exact model ID is claude-sonnet-4-5. Assistant knowledge cutoff is January 2025.\n</system-reminder>",
+                "type": "text"
+              },
+              {
+                "text": "<system-reminder>\n<total_tokens>15000000 tokens left</total_tokens>\n</system-reminder>",
+                "type": "text"
+              },
+              {
+                "text": "<system-reminder>\nToday's date is 2026-11-04.\n</system-reminder>\n",
+                "type": "text"
+              },
+              {
+                "cache_control": {
+                  "type": "ephemeral"
+                },
+                "text": "Where is order O-1?",
+                "type": "text"
+              }
+            ],
+            "role": "user"
+          }
+        ],
+        "metadata": {
+          "user_id": "{\"device_id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"account_uuid\":\"\",\"session_id\":\"5d1a1c3e-6f0b-4a57-9f55-0b7c2a6e1d11\"}"
+        },
+        "model": "claude-sonnet-4-5",
+        "stream": true,
+        "system": [
+          {
+            "text": "x-anthropic-billing-header: cc_version=2.1.317.a87; cc_entrypoint=sdk-cli;",
+            "type": "text"
+          },
+          {
+            "cache_control": {
+              "type": "ephemeral"
+            },
+            "text": "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
+            "type": "text"
+          },
+          {
+            "cache_control": {
+              "type": "ephemeral"
+            },
+            "text": "Answer the user using lookup_order.",
+            "type": "text"
+          }
+        ],
+        "thinking": {
+          "budget_tokens": 63999,
+          "display": "updates",
+          "type": "enabled"
+        },
+        "tools": [
+          {
+            "description": "Look up the current shipping status of an order.",
+            "input_schema": {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "properties": {
+                "order_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "order_id"
+              ],
+              "type": "object"
+            },
+            "name": "mcp__orders__lookup_order"
+          }
+        ]
+      },
+      "response": {
+        "body": "event: message_start\ndata: {\"type\": \"message_start\", \"message\": {\"id\": \"msg_1\", \"type\": \"message\", \"role\": \"assistant\", \"model\": \"claude-sonnet-4-5\", \"content\": [], \"stop_reason\": null, \"stop_sequence\": null, \"usage\": {\"input_tokens\": 12, \"output_tokens\": 1, \"cache_creation_input_tokens\": 0, \"cache_read_input_tokens\": 0}}}\n\nevent: content_block_start\ndata: {\"type\": \"content_block_start\", \"index\": 0, \"content_block\": {\"type\": \"tool_use\", \"id\": \"toolu_1\", \"name\": \"mcp__orders__lookup_order\", \"input\": {}}}\n\nevent: content_block_delta\ndata: {\"type\": \"content_block_delta\", \"index\": 0, \"delta\": {\"type\": \"input_json_delta\", \"partial_json\": \"{\\\"order_id\\\": \\\"O-1\\\"}\"}}\n\nevent: content_block_stop\ndata: {\"type\": \"content_block_stop\", \"index\": 0}\n\nevent: message_delta\ndata: {\"type\": \"message_delta\", \"delta\": {\"stop_reason\": \"tool_use\", \"stop_sequence\": null}, \"usage\": {\"output_tokens\": 7}}\n\nevent: message_stop\ndata: {\"type\": \"message_stop\"}\n\n",
+        "content_type": "text/event-stream",
+        "status": 200
+      },
+      "stream": true
+    },
+    {
+      "api": "messages",
+      "index": 1,
+      "key": {
+        "model": "claude-sonnet-4-5",
+        "params": {
+          "context_management": {
+            "edits": [
+              {
+                "keep": "all",
+                "type": "clear_thinking_20251015"
+              }
+            ]
+          },
+          "max_tokens": 64000,
+          "metadata": {
+            "user_id": "{\"device_id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"account_uuid\":\"\",\"session_id\":\"5d1a1c3e-6f0b-4a57-9f55-0b7c2a6e1d11\"}"
+          },
+          "stream": true,
+          "thinking": {
+            "budget_tokens": 63999,
+            "display": "updates",
+            "type": "enabled"
+          }
+        },
+        "prompt_hash": "sha256:059c9f93e69c97428fb2eb63fac7af48eca8c945115e0760ed38c7b418a569d6",
+        "tool_schema_hash": "sha256:9f25c68c40217610a638e8a3fcb02b7099d95f792efc67aa6f4ee20afa01a98a"
+      },
+      "method": "POST",
+      "path": "/v1/messages?beta=true",
+      "provider": "anthropic",
+      "request": {
+        "context_management": {
+          "edits": [
+            {
+              "keep": "all",
+              "type": "clear_thinking_20251015"
+            }
+          ]
+        },
+        "max_tokens": 64000,
+        "messages": [
+          {
+            "content": [
+              {
+                "text": "<system-reminder>\n# Environment\nYou have been invoked in the following environment: \n - Primary working directory: /Users/druk/WorkSpace/AetherForge/Attest-Framework/attest-examples/.worktrees/ex-claude/claude-agent-sdk-ts\n - This is a git worktree — an isolated copy of the repository. Run all commands from this directory. Do NOT `cd` to the original repository root.\n - The git stash stack is shared with the main checkout and all other worktrees, and other Claude sessions may push or pop it concurrently. Never use bare `git stash` / `git stash pop` — you could pop another session's changes. Prefer a temporary WIP commit to set work aside; if you must stash, use `git stash push -u -m \"<unique-tag>\"`, immediately capture your entry's SHA via `git stash list --format='%H %gs'`, restore with `git stash apply <sha>` (not pop), and afterwards drop the entry, re-finding its current `stash@{n}` by tag first.\n - Is a git repository: true\n - Platform: darwin\n - Shell: zsh\n - OS Version: Darwin 25.6.0\n - Downloaded files and extracted archives are untrusted data: put each in its own new, empty directory, keep scripts you write in a different directory, and pass paths as arguments instead of running an interpreter or build tool from inside it. Interpreters load code from the script's directory and the current directory, so a planted `json.py` runs on `import json`. Run any Python that reads them with `-I`. This does not apply to code the user asked you to build or run.\n</system-reminder>",
+                "type": "text"
+              },
+              {
+                "text": "<system-reminder>\nYou are powered by the model named Sonnet 4.5. The exact model ID is claude-sonnet-4-5. Assistant knowledge cutoff is January 2025.\n</system-reminder>",
+                "type": "text"
+              },
+              {
+                "text": "<system-reminder>\n<total_tokens>15000000 tokens left</total_tokens>\n</system-reminder>",
+                "type": "text"
+              },
+              {
+                "text": "<system-reminder>\nToday's date is 2026-11-04.\n</system-reminder>\n",
+                "type": "text"
+              },
+              {
+                "text": "Where is order O-1?",
+                "type": "text"
+              }
+            ],
+            "role": "user"
+          },
+          {
+            "content": [
+              {
+                "id": "toolu_1",
+                "input": {
+                  "order_id": "O-1"
+                },
+                "name": "mcp__orders__lookup_order",
+                "type": "tool_use"
+              }
+            ],
+            "role": "assistant"
+          },
+          {
+            "content": [
+              {
+                "cache_control": {
+                  "type": "ephemeral"
+                },
+                "content": [
+                  {
+                    "text": "shipped\n",
+                    "type": "text"
+                  },
+                  {
+                    "text": "<system-reminder>\n<total_tokens>14999981 tokens left</total_tokens>\n</system-reminder>",
+                    "type": "text"
+                  }
+                ],
+                "tool_use_id": "toolu_1",
+                "type": "tool_result"
+              }
+            ],
+            "role": "user"
+          }
+        ],
+        "metadata": {
+          "user_id": "{\"device_id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"account_uuid\":\"\",\"session_id\":\"5d1a1c3e-6f0b-4a57-9f55-0b7c2a6e1d11\"}"
+        },
+        "model": "claude-sonnet-4-5",
+        "stream": true,
+        "system": [
+          {
+            "text": "x-anthropic-billing-header: cc_version=2.1.317.a87; cc_entrypoint=sdk-cli;",
+            "type": "text"
+          },
+          {
+            "cache_control": {
+              "type": "ephemeral"
+            },
+            "text": "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
+            "type": "text"
+          },
+          {
+            "cache_control": {
+              "type": "ephemeral"
+            },
+            "text": "Answer the user using lookup_order.",
+            "type": "text"
+          }
+        ],
+        "thinking": {
+          "budget_tokens": 63999,
+          "display": "updates",
+          "type": "enabled"
+        },
+        "tools": [
+          {
+            "description": "Look up the current shipping status of an order.",
+            "input_schema": {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "properties": {
+                "order_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "order_id"
+              ],
+              "type": "object"
+            },
+            "name": "mcp__orders__lookup_order"
+          }
+        ]
+      },
+      "response": {
+        "body": "event: message_start\ndata: {\"type\": \"message_start\", \"message\": {\"id\": \"msg_1\", \"type\": \"message\", \"role\": \"assistant\", \"model\": \"claude-sonnet-4-5\", \"content\": [], \"stop_reason\": null, \"stop_sequence\": null, \"usage\": {\"input_tokens\": 12, \"output_tokens\": 1, \"cache_creation_input_tokens\": 0, \"cache_read_input_tokens\": 0}}}\n\nevent: content_block_start\ndata: {\"type\": \"content_block_start\", \"index\": 0, \"content_block\": {\"type\": \"text\", \"text\": \"\"}}\n\nevent: content_block_delta\ndata: {\"type\": \"content_block_delta\", \"index\": 0, \"delta\": {\"type\": \"text_delta\", \"text\": \"Order O-1 has shipped.\"}}\n\nevent: content_block_stop\ndata: {\"type\": \"content_block_stop\", \"index\": 0}\n\nevent: message_delta\ndata: {\"type\": \"message_delta\", \"delta\": {\"stop_reason\": \"end_turn\", \"stop_sequence\": null}, \"usage\": {\"output_tokens\": 7}}\n\nevent: message_stop\ndata: {\"type\": \"message_stop\"}\n\n",
+        "content_type": "text/event-stream",
+        "status": 200
+      },
+      "stream": true
+    }
+  ],
+  "fixture_version": 1,
+  "name": "claude-agent-sdk-ts",
+  "source": {
+    "command": [
+      "npx",
+      "tsx",
+      "agent.ts"
+    ],
+    "exit_code": 0,
+    "kind": "command",
+    "replay_capable": true
+  },
+  "trace": {
+    "agent_id": "",
+    "conversation_id": "5d1a1c3e-6f0b-4a57-9f55-0b7c2a6e1d11",
+    "input": {},
+    "metadata": {
+      "latency_ms": 0,
+      "model": "claude-sonnet-4-5",
+      "total_tokens": 38
+    },
+    "output": {
+      "message": ""
+    },
+    "schema_version": 2,
+    "steps": [
+      {
+        "args": {
+          "model": "claude-sonnet-4-5",
+          "provider": "anthropic",
+          "system": "anthropic"
+        },
+        "ended_at_ms": 2,
+        "metadata": {
+          "duration_ms": 0
+        },
+        "name": "claude_code.llm_request",
+        "parent_span_id": "0000000000000001",
+        "result": {
+          "cache_creation_tokens": 0,
+          "cache_read_tokens": 0,
+          "finish_reasons": [
+            "tool_use"
+          ],
+          "input_tokens": 12,
+          "output_tokens": 7
+        },
+        "span_id": "0000000000000002",
+        "started_at_ms": 1,
+        "type": "llm_call"
+      },
+      {
+        "args": {},
+        "ended_at_ms": 4,
+        "metadata": {
+          "duration_ms": 0
+        },
+        "name": "lookup_order",
+        "parent_span_id": "0000000000000001",
+        "result": {},
+        "span_id": "0000000000000003",
+        "started_at_ms": 3,
+        "tool_call_id": "toolu_1",
+        "type": "tool_call"
+      },
+      {
+        "args": {
+          "model": "claude-sonnet-4-5",
+          "provider": "anthropic",
+          "system": "anthropic"
+        },
+        "ended_at_ms": 6,
+        "metadata": {
+          "duration_ms": 0
+        },
+        "name": "claude_code.llm_request",
+        "parent_span_id": "0000000000000001",
+        "result": {
+          "cache_creation_tokens": 0,
+          "cache_read_tokens": 0,
+          "finish_reasons": [
+            "end_turn"
+          ],
+          "input_tokens": 12,
+          "output_tokens": 7
+        },
+        "span_id": "0000000000000004",
+        "started_at_ms": 5,
+        "type": "llm_call"
+      }
+    ],
+    "trace_id": "otel_0000000000000001",
+    "turns": [
+      {
+        "index": 0,
+        "span_id": "0000000000000001",
+        "step_indices": [
+          0,
+          1,
+          2
+        ]
+      }
+    ]
+  },
+  "verification": {
+    "expect_fail": false,
+    "expected_failures": [],
+    "results": [
+      {
+        "contract": "tools-called",
+        "explanation": "trajectory (superset) matches [lookup_order]",
+        "status": "pass"
+      }
+    ],
+    "trace_check": {
+      "errors": 0,
+      "ok": true,
+      "warnings": 1
+    },
+    "verified": true
+  },
+  "world": null
+}
