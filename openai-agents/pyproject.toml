@@ -3,7 +3,7 @@ name = "attest-openai-agents"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
-    "attest-ai==1.0.0rc5",
+    "attest-ai==1.0.0",
     "pytest>=8.0",
     "openai-agents==0.24.0",
     "opentelemetry-instrumentation-openai-agents-v2==0.1.0",
