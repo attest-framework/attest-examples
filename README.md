@@ -69,6 +69,8 @@ These frameworks are captured with `attest capture` through their own OpenTeleme
 |---|---|---|---|
 | [pydantic-ai/](pydantic-ai/) | Pydantic AI (Python) | native `InstrumentationSettings(version=5)` | `make test EXAMPLE=pydantic-ai` |
 | [vercel-ai-ts/](vercel-ai-ts/) | Vercel AI SDK (TypeScript) | native `@ai-sdk/otel` | `cd vercel-ai-ts && pnpm install && pnpm test` |
+| [openai-agents/](openai-agents/) | OpenAI Agents SDK (Python) | `opentelemetry-instrumentation-openai-agents-v2` (alpha) | `make test EXAMPLE=openai-agents` |
+| [langgraph/](langgraph/) | LangGraph (Python) | LangSmith in OTel mode, local exporter only | `make test EXAMPLE=langgraph` |
 
 ---
 

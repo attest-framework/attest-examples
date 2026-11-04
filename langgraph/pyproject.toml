@@ -1,0 +1,21 @@
+[project]
+name = "attest-langgraph"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "attest-ai==1.0.0rc5",
+    "pytest>=8.0",
+    "langgraph==1.2.19",
+    "langgraph-prebuilt==1.1.1",
+    "langchain-openai==1.7.3",
+    "langchain-core==1.7.4",
+    "langsmith==0.14.17",
+    "opentelemetry-sdk==1.45.2",
+    "opentelemetry-exporter-otlp-proto-http==1.45.2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+# Replay runs the real agent against the committed fixture: a request with no recording fails the
+# test, and a direct connection to a provider host fails instead of going live.
+addopts = "--attest-replay=strict --attest-egress=block"
