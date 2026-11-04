@@ -65,6 +65,8 @@ Each example targets a specific layer of Attest's assertion stack.
 
 These frameworks are captured with `attest capture` through their own OpenTelemetry instrumentation, with no attest-specific adapter. Each example commits its fixture and the test `attest capture` drafted; all but the Claude Agent SDK examples also commit a strict replay test that runs the real agent with zero model calls and no provider key (Claude Code puts the working directory, OS and date into its requests, which replay does not normalize yet; see those READMEs). Re-capture against [`scripted-model/`](scripted-model/), a stdlib model server.
 
+CI runs each with `0 live model calls` asserted from its report: the five examples with a replay test must show a replay summary with every call replayed, and the two Claude Agent SDK examples must show no live call and every assertion passing.
+
 | Example | Framework | Instrumentation | Run |
 |---|---|---|---|
 | [pydantic-ai/](pydantic-ai/) | Pydantic AI (Python) | native `InstrumentationSettings(version=5)` | `make test EXAMPLE=pydantic-ai` |
@@ -121,7 +123,7 @@ No API key is needed. Every example evaluates against the real Attest engine: sc
 
 ## CI
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs each example on the pinned release, writes an Attest report, evaluates [`attest.policy.yaml`](attest.policy.yaml) (any hard failure blocks; not-evaluated assertions warn) and annotates the pull request with each failed assertion at its test's line. An advisory `edge` job runs the same examples against attest `main`.
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs each example on the pinned release, writes an Attest report, evaluates [`attest.policy.yaml`](attest.policy.yaml) (any hard failure blocks; not-evaluated assertions warn) and, in a separate job that holds the only write permission, posts one summary comment and annotates each failed assertion at its test's line (`pr-annotate` v2). An advisory `edge` job runs the same examples against attest `main`.
 
 ---
 
