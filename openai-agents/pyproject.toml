@@ -1,0 +1,18 @@
+[project]
+name = "attest-openai-agents"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "attest-ai==1.0.0rc5",
+    "pytest>=8.0",
+    "openai-agents==0.24.0",
+    "opentelemetry-instrumentation-openai-agents-v2==0.1.0",
+    "opentelemetry-sdk==1.45.2",
+    "opentelemetry-exporter-otlp-proto-http==1.45.2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+# Replay runs the real agent against the committed fixture: a request with no recording fails the
+# test, and a direct connection to a provider host fails instead of going live.
+addopts = "--attest-replay=strict --attest-egress=block"

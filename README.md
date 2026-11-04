@@ -72,6 +72,8 @@ These frameworks are captured with `attest capture` through their own OpenTeleme
 | [mastra-ts/](mastra-ts/) | Mastra (TypeScript) | native `@mastra/otel-exporter` | `cd mastra-ts && pnpm install && pnpm test` |
 | [claude-agent-sdk/](claude-agent-sdk/) | Claude Agent SDK (Python) | Claude Code native traces (beta); no replay test, see its README | `make test EXAMPLE=claude-agent-sdk` |
 | [claude-agent-sdk-ts/](claude-agent-sdk-ts/) | Claude Agent SDK (TypeScript) | Claude Code native traces (beta); no replay test, see its README | `cd claude-agent-sdk-ts && pnpm install && pnpm test` |
+| [openai-agents/](openai-agents/) | OpenAI Agents SDK (Python) | `opentelemetry-instrumentation-openai-agents-v2` (alpha) | `make test EXAMPLE=openai-agents` |
+| [langgraph/](langgraph/) | LangGraph (Python) | LangSmith in OTel mode, local exporter only | `make test EXAMPLE=langgraph` |
 
 ---
 
