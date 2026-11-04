@@ -39,3 +39,6 @@ bin/
 
 # Lock files (regenerated per-machine via uv sync)
 uv.lock
+# Framework examples commit their lock: strict replay hashes the tool schema, which pydantic and
+# griffelib shape, so the resolved versions are part of the fixture's contract.
+!pydantic-ai/uv.lock
