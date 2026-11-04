@@ -44,3 +44,4 @@ uv.lock
 !pydantic-ai/uv.lock
 !openai-agents/uv.lock
 !langgraph/uv.lock
+!claude-agent-sdk/uv.lock
