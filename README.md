@@ -69,6 +69,8 @@ These frameworks are captured with `attest capture` through their own OpenTeleme
 |---|---|---|---|
 | [pydantic-ai/](pydantic-ai/) | Pydantic AI (Python) | native `InstrumentationSettings(version=5)` | `make test EXAMPLE=pydantic-ai` |
 | [vercel-ai-ts/](vercel-ai-ts/) | Vercel AI SDK (TypeScript) | native `@ai-sdk/otel` | `cd vercel-ai-ts && pnpm install && pnpm test` |
+| [claude-agent-sdk/](claude-agent-sdk/) | Claude Agent SDK (Python) | Claude Code native traces (beta) | `make test EXAMPLE=claude-agent-sdk` |
+| [claude-agent-sdk-ts/](claude-agent-sdk-ts/) | Claude Agent SDK (TypeScript) | Claude Code native traces (beta) | `cd claude-agent-sdk-ts && pnpm install && pnpm test` |
 
 ---
 
