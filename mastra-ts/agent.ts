@@ -10,38 +10,43 @@ import { Mastra } from "@mastra/core/mastra";
 import { createTool } from "@mastra/core/tools";
 import { Observability } from "@mastra/observability";
 import { OtelExporter } from "@mastra/otel-exporter";
+import type { SpanExporter } from "@opentelemetry/sdk-trace-node";
 import { pathToFileURL } from "node:url";
 import { z } from "zod";
 
 const MODEL = "gpt-4.1";
 const QUESTION = "Where is order O-1?";
 
-function otlpExporter(endpoint: string): OtelExporter {
+// OtelExporter refuses a custom provider without an endpoint even when it is given a span
+// exporter, which then receives the spans in place of the HTTP exporter. Never contacted.
+const UNUSED_ENDPOINT = "http://127.0.0.1:4318/v1/traces";
+
+function otlpExporter(endpoint: string, exporter?: SpanExporter): OtelExporter {
   return new OtelExporter({
     provider: { custom: { endpoints: { traces: endpoint }, protocol: "http/json" } },
     signals: { traces: true, logs: false },
+    exporter,
   });
 }
 
 /**
  * Run the agent once and return its answer, exporting its spans before returning.
- * `extraEndpoints` receive the same spans as OTEL_EXPORTER_OTLP_TRACES_ENDPOINT; tests use one
- * to read the trace.
+ * `extraExporters` receive the same spans as the OTLP exporter; tests use one to read the trace.
  */
 export async function run(
   question: string = QUESTION,
-  extraEndpoints: string[] = [],
+  extraExporters: SpanExporter[] = [],
 ): Promise<string> {
-  // Without the variable, run() exports only to `extraEndpoints` instead of failing on a missing
-  // endpoint.
+  // Without the variable, run() adds no OTLP exporter and exports only to `extraExporters`.
   const traceEndpoint = process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT;
-  const endpoints = traceEndpoint ? [traceEndpoint, ...extraEndpoints] : extraEndpoints;
+  const exporters = [
+    ...(traceEndpoint ? [otlpExporter(traceEndpoint)] : []),
+    ...extraExporters.map((exporter) => otlpExporter(UNUSED_ENDPOINT, exporter)),
+  ];
   // A fresh Observability per run keeps a second run() in one process from exporting through an
   // instance the first run already shut down.
   const observability = new Observability({
-    configs: {
-      otel: { serviceName: "mastra-ts", exporters: endpoints.map(otlpExporter) },
-    },
+    configs: { otel: { serviceName: "mastra-ts", exporters } },
   });
   const lookupOrder = createTool({
     id: "lookup_order",

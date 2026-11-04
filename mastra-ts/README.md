@@ -46,9 +46,9 @@ The committed `pnpm-lock.yaml` pins the versions: strict replay matches the requ
 Two test files, no keys, no network to providers:
 
 - `tests/attest/mastra-ts.test.ts` (drafted by capture): the contracts run on the fixture's trace.
-- `tests/attest/mastra-ts.replay.test.ts`: runs the real agent (`run()`) against the fixture through `useReplay("mastra-ts", { mode: "strict", egress: "block" })`, then asserts `lookup_order` was called once per `order_id` on the trace that run produced. Replay's proxy does not hand spans back, so `run()` also exports to a loopback OTLP receiver the test owns.
+- `tests/attest/mastra-ts.replay.test.ts`: runs the real agent (`run()`) against the fixture through `useReplay("mastra-ts", { mode: "strict", egress: "block" })`, then asserts `lookup_order` was called once per `order_id` on the trace that run produced. `run()` also hands the spans to a collecting exporter the test passes in (`OtelExporter` accepts an `exporter`), so the test reads the trace without a network receiver. `OtelExporter` still requires a `provider.custom` endpoint for that exporter; it is never contacted.
 
-`vitest.config.ts` adds the `AttestReporter`, which prints the replay summary:
+`vitest.config.ts` sets `testTimeout: 60_000` (a runner with an empty HOME downloads the attest engine on the first evaluation, about 5s, and Mastra starts cold; vitest's 5s default is too short) and adds the `AttestReporter`, which prints the replay summary:
 
 ```text
  Test Files  2 passed (2)
