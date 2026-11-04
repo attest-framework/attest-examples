@@ -2,7 +2,7 @@
 name = "attest-example-semantic-similarity"
 version = "0.1.0"
 requires-python = ">=3.10"
-dependencies = ["attest-ai==1.0.0rc5", "pytest>=8.0"]
+dependencies = ["attest-ai==1.0.0", "pytest>=8.0"]
 
 [tool.pytest.ini_options]
 testpaths = ["."]

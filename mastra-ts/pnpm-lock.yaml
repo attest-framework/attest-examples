@@ -12,11 +12,11 @@ importers:
         specifier: 4.0.108
         version: 4.0.108(zod@4.6.7)
       '@attest-ai/core':
-        specifier: 1.0.0-rc.5
-        version: 1.0.0-rc.5
+        specifier: 1.0.0
+        version: 1.0.0
       '@attest-ai/vitest':
-        specifier: 1.0.0-rc.5
-        version: 1.0.0-rc.5(@attest-ai/core@1.0.0-rc.5)(vitest@4.1.12(@opentelemetry/api@1.10.0)(@types/node@22.20.5)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1)))
+        specifier: 1.0.0
+        version: 1.0.0(@attest-ai/core@1.0.0)(vitest@4.1.12(@opentelemetry/api@1.10.0)(@types/node@22.20.5)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1)))
       '@mastra/core':
         specifier: 1.81.0
         version: 1.81.0(@grpc/grpc-js@1.14.7)(@opentelemetry/api@1.10.0)(zod@4.6.7)
@@ -124,8 +124,8 @@ packages:
     resolution: {integrity: sha512-yBz6fmLS8MSCIzy7NiHEUAq56ZLD4ZA1GR6bpXBxgbwUacP1La7LuwAr/xy9jSzthem4F8Xu2OrhvU/JrE9fYA==}
     engines: {node: '>=22'}
 
-  '@attest-ai/core@1.0.0-rc.5':
-    resolution: {integrity: sha512-SYcSwy3+iQxaBppxCPRiEYSwVV3bWXObYsRdRyxLxCsJwLfyqEKpdSDR1e6psgQMcr5abtV7ThlfQ3lhKbOW5A==}
+  '@attest-ai/core@1.0.0':
+    resolution: {integrity: sha512-beGUY6KULjEhk93ec4ZbP43mGAMCzy6CxH4o3pgMc7aIXLBCdrHr5WbG+1bxvVBF0BDjoFk7VxvQ/ti9SrXGhw==}
     engines: {node: '>=18'}
     hasBin: true
     peerDependencies:
@@ -134,11 +134,11 @@ packages:
       '@langchain/core':
         optional: true
 
-  '@attest-ai/vitest@1.0.0-rc.5':
-    resolution: {integrity: sha512-jVpmwIdzH7B+9b8JES3IMaHABsHFmU2BiH2pofIQu9C5jpX2vYuibR9ryLMvueKY2t/OaJ9fmC9CknVzLAzprQ==}
+  '@attest-ai/vitest@1.0.0':
+    resolution: {integrity: sha512-aQxEokKSLvbOCh1xiSs7crl5PcRLYxlBEUDfqlpYF1hW7xWMyKObD9+ND3Emw4WwoG/+siIn8w8s0nsGNp+rzQ==}
     engines: {node: '>=18'}
     peerDependencies:
-      '@attest-ai/core': '>=1.0.0-rc'
+      '@attest-ai/core': '>=1.0.0'
       vitest: '>=3.0.0 <5'
 
   '@chat-adapter/catalog@4.44.0':
@@ -1650,11 +1650,11 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
-  '@attest-ai/core@1.0.0-rc.5': {}
+  '@attest-ai/core@1.0.0': {}
 
-  '@attest-ai/vitest@1.0.0-rc.5(@attest-ai/core@1.0.0-rc.5)(vitest@4.1.12(@opentelemetry/api@1.10.0)(@types/node@22.20.5)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1)))':
+  '@attest-ai/vitest@1.0.0(@attest-ai/core@1.0.0)(vitest@4.1.12(@opentelemetry/api@1.10.0)(@types/node@22.20.5)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1)))':
     dependencies:
-      '@attest-ai/core': 1.0.0-rc.5
+      '@attest-ai/core': 1.0.0
       vitest: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@22.20.5)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
 
   '@chat-adapter/catalog@4.44.0': {}
