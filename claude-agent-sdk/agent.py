@@ -46,9 +46,11 @@ def cli_env(home: Path, traces_endpoint: str, parent: Mapping[str, str]) -> dict
     variable that is not on the allowlist is blanked: a request setting (`CLAUDE_CODE_*`,
     `MAX_THINKING_TOKENS`, `ANTHROPIC_MODEL`, ...) or a provider switch (`CLAUDE_CODE_USE_BEDROCK`,
     `AWS_*`, ...) in the caller's shell never reaches Claude Code. HOME and CLAUDE_CONFIG_DIR point
-    at a scratch directory, so no user login, settings or subscription is read.
+    at a scratch directory, so no user settings or subscription is read.
     """
-    env = {name: "" for name in parent}
+    # CLAUDE_CODE_ENTRYPOINT stays out of the blanking: the SDK sets its own value (`sdk-py`) over
+    # the inherited one, so the parent's never reaches Claude Code.
+    env = {name: "" for name in parent if name != "CLAUDE_CODE_ENTRYPOINT"}
     env.update(
         {
             "PATH": parent["PATH"],
@@ -76,6 +78,9 @@ def cli_env(home: Path, traces_endpoint: str, parent: Mapping[str, str]) -> dict
 
 
 async def _ask(question: str, env: dict[str, str], cli_path: str | None) -> str:
+    # The SDK's version check runs `claude -v` with the full parent environment and the real HOME,
+    # before `env` applies. Skip it.
+    os.environ["CLAUDE_AGENT_SDK_SKIP_VERSION_CHECK"] = "1"
     WORKDIR.mkdir(exist_ok=True)
     options = ClaudeAgentOptions(
         tools=[],  # no built-in tools

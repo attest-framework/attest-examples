@@ -1,7 +1,8 @@
-// The Claude Code subprocess gets an allowlisted environment, whatever the caller's shell holds.
+// Every Claude Code invocation gets an allowlisted environment, whatever the caller's shell holds.
 //
-// A stand-in for the Claude Code binary records the environment it is started with; the test runs
-// the real SDK against it with sentinel request and provider settings in the parent.
+// A stand-in for the Claude Code binary records the arguments and environment of each invocation;
+// the test runs the real SDK against it with sentinel request and provider settings in the parent,
+// so a pre-launch call (a version probe, say) would show up as a second record.
 import { chmod, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -33,8 +34,8 @@ describe("claude-agent-sdk-ts environment", () => {
     await writeFile(
       probe,
       `#!/usr/bin/env node
-import { writeFileSync } from "node:fs";
-writeFileSync(${JSON.stringify(dump)}, JSON.stringify(process.env));
+import { appendFileSync } from "node:fs";
+appendFileSync(${JSON.stringify(dump)}, JSON.stringify({ argv: process.argv.slice(2), env: process.env }) + "\\n");
 `,
     );
     await chmod(probe, 0o755);
@@ -45,11 +46,17 @@ writeFileSync(${JSON.stringify(dump)}, JSON.stringify(process.env));
 
     await run(undefined, probe).catch(() => undefined); // the stand-in exits without speaking
 
-    const received = JSON.parse(await readFile(dump, "utf8")) as Record<string, string>;
-    // The SDK sets CLAUDE_CODE_ENTRYPOINT itself, so the check is on the sentinel value.
-    expect(Object.entries(received).filter(([, value]) => value === "sentinel")).toEqual([]);
-    expect(received.CLAUDE_CODE_USE_BEDROCK).toBeUndefined();
-    expect(received.ANTHROPIC_BASE_URL).toBe("http://127.0.0.1:1");
-    expect(received.CLAUDE_CODE_ENHANCED_TELEMETRY_BETA).toBe("1");
+    const invocations = (await readFile(dump, "utf8"))
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as { argv: string[]; env: Record<string, string> });
+    expect(invocations).toHaveLength(1);
+    for (const { env: received } of invocations) {
+      // The SDK sets CLAUDE_CODE_ENTRYPOINT itself, so the check is on the sentinel value.
+      expect(Object.entries(received).filter(([, value]) => value === "sentinel")).toEqual([]);
+      expect(received.CLAUDE_CODE_USE_BEDROCK).toBeUndefined();
+      expect(received.ANTHROPIC_BASE_URL).toBe("http://127.0.0.1:1");
+      expect(received.CLAUDE_CODE_ENHANCED_TELEMETRY_BETA).toBe("1");
+    }
   });
 });

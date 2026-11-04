@@ -1,7 +1,8 @@
-"""The Claude Code subprocess gets an allowlisted environment, whatever the caller's shell holds.
+"""Every Claude Code invocation gets an allowlisted environment, whatever the caller's shell holds.
 
-A stand-in for the Claude Code binary records the environment it is started with; the test
-runs the real SDK against it with sentinel request and provider settings in the parent.
+A stand-in for the Claude Code binary records the arguments and environment of each invocation;
+the test runs the real SDK against it with sentinel request and provider settings in the parent.
+It covers the SDK's own `claude -v` version check too, which runs before the environment applies.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ import pytest
 from agent import run
 
 SENTINELS = {
-    "CLAUDE_CODE_ENTRYPOINT": "sentinel-entrypoint",
+    "CLAUDE_CODE_ENTRYPOINT": "sentinel",
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "12345",
     "CLAUDE_CODE_USE_BEDROCK": "1",
     "CLAUDE_CODE_USE_VERTEX": "1",
@@ -24,7 +25,7 @@ SENTINELS = {
     "ANTHROPIC_MODEL": "sentinel-model",
     "ANTHROPIC_CUSTOM_HEADERS": "x-sentinel: 1",
     "ANTHROPIC_BETAS": "sentinel-beta",
-    "ANTHROPIC_AUTH_TOKEN": "sentinel-token",
+    "ANTHROPIC_AUTH_TOKEN": "sentinel",
     "CLAUDE_CODE_OAUTH_TOKEN": "sentinel-oauth",
     "AWS_ACCESS_KEY_ID": "sentinel-aws",
 }
@@ -38,7 +39,7 @@ def test_run_blanks_request_and_provider_settings_from_the_parent_environment(
     probe.write_text(
         "#!/usr/bin/env python3\n"
         "import json, os, sys\n"
-        f"json.dump(dict(os.environ), open({str(dump)!r}, 'w'))\n"
+        f"open({str(dump)!r}, 'a').write(json.dumps({{'argv': sys.argv[1:], 'env': dict(os.environ)}}) + '\\n')\n"
         # Answer the SDK's initialize request, so it does not wait out its 60 s timeout.
         "request = json.loads(sys.stdin.readline())\n"
         "reply = {'subtype': 'success', 'request_id': request['request_id'], 'response': {}}\n"
@@ -53,8 +54,15 @@ def test_run_blanks_request_and_provider_settings_from_the_parent_environment(
 
     assert run(cli_path=str(probe)) == ""  # the stand-in exits after initialize
 
-    received = json.loads(dump.read_text())
-    assert {name: received.get(name) for name in SENTINELS} == {name: "" for name in SENTINELS}
-    assert received["ANTHROPIC_BASE_URL"] == "http://127.0.0.1:1"
-    assert received["CLAUDE_CODE_ENHANCED_TELEMETRY_BETA"] == "1"
-    assert received["HOME"] != str(Path.home())
+    invocations = [json.loads(line) for line in dump.read_text().splitlines()]
+    assert [i["argv"][:1] for i in invocations if "-v" in i["argv"]] == []  # no version probe
+    assert len(invocations) == 1
+    for invocation in invocations:
+        received = invocation["env"]
+        # The SDK sets CLAUDE_CODE_ENTRYPOINT itself; the parent's value must not survive.
+        assert received["CLAUDE_CODE_ENTRYPOINT"] == "sdk-py"
+        assert [n for n, v in received.items() if v.startswith("sentinel")] == []
+        assert [n for n in SENTINELS if n != "CLAUDE_CODE_ENTRYPOINT" and received.get(n)] == []
+        assert received["ANTHROPIC_BASE_URL"] == "http://127.0.0.1:1"
+        assert received["CLAUDE_CODE_ENHANCED_TELEMETRY_BETA"] == "1"
+        assert received["HOME"] != str(Path.home())

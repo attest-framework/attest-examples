@@ -32,7 +32,7 @@
           },
           "max_tokens": 32000,
           "metadata": {
-            "user_id": "{\"device_id\":\"fa93503b820a6459c1e6798344db5ca629fddbbbf1241f456b66dd12215e6672\",\"account_uuid\":\"\",\"session_id\":\"6605d9c5-bd82-4811-a0ea-76180ae5d765\"}"
+            "user_id": "{\"device_id\":\"8dd36770ba8b2aa2068271a3ddd8ca779408d1b0831792361f0823128c958601\",\"account_uuid\":\"\",\"session_id\":\"04b5d25a-f148-484e-b2c9-20d0e7a917d9\"}"
           },
           "stream": true,
           "thinking": {
@@ -88,7 +88,7 @@
           }
         ],
         "metadata": {
-          "user_id": "{\"device_id\":\"fa93503b820a6459c1e6798344db5ca629fddbbbf1241f456b66dd12215e6672\",\"account_uuid\":\"\",\"session_id\":\"6605d9c5-bd82-4811-a0ea-76180ae5d765\"}"
+          "user_id": "{\"device_id\":\"8dd36770ba8b2aa2068271a3ddd8ca779408d1b0831792361f0823128c958601\",\"account_uuid\":\"\",\"session_id\":\"04b5d25a-f148-484e-b2c9-20d0e7a917d9\"}"
         },
         "model": "claude-sonnet-4-5",
         "stream": true,
@@ -158,7 +158,7 @@
           },
           "max_tokens": 32000,
           "metadata": {
-            "user_id": "{\"device_id\":\"fa93503b820a6459c1e6798344db5ca629fddbbbf1241f456b66dd12215e6672\",\"account_uuid\":\"\",\"session_id\":\"6605d9c5-bd82-4811-a0ea-76180ae5d765\"}"
+            "user_id": "{\"device_id\":\"8dd36770ba8b2aa2068271a3ddd8ca779408d1b0831792361f0823128c958601\",\"account_uuid\":\"\",\"session_id\":\"04b5d25a-f148-484e-b2c9-20d0e7a917d9\"}"
           },
           "stream": true,
           "thinking": {
@@ -246,7 +246,7 @@
           }
         ],
         "metadata": {
-          "user_id": "{\"device_id\":\"fa93503b820a6459c1e6798344db5ca629fddbbbf1241f456b66dd12215e6672\",\"account_uuid\":\"\",\"session_id\":\"6605d9c5-bd82-4811-a0ea-76180ae5d765\"}"
+          "user_id": "{\"device_id\":\"8dd36770ba8b2aa2068271a3ddd8ca779408d1b0831792361f0823128c958601\",\"account_uuid\":\"\",\"session_id\":\"04b5d25a-f148-484e-b2c9-20d0e7a917d9\"}"
         },
         "model": "claude-sonnet-4-5",
         "stream": true,
@@ -316,7 +316,7 @@
   },
   "trace": {
     "agent_id": "",
-    "conversation_id": "6605d9c5-bd82-4811-a0ea-76180ae5d765",
+    "conversation_id": "04b5d25a-f148-484e-b2c9-20d0e7a917d9",
     "input": {},
     "metadata": {
       "latency_ms": 0,
