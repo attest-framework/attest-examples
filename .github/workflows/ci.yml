@@ -164,10 +164,12 @@ jobs:
           exit 1
 
   # Posts the one summary comment and the annotations for every example (pr-annotate v2).
-  # It is the only job with `pull-requests: write` and it executes no example code: it
-  # downloads the report artifacts, which are data, and runs the pinned action and the
-  # pinned attest-ai release. Fork pull requests get a read-only token, so it is skipped
-  # there (the action would only print a notice); the example jobs still gate them.
+  # It is the only job with `pull-requests: write`, so it runs no example code: it downloads
+  # the report artifacts (data), then runs attest-ai==1.0.0rc5 and pr-annotate, both pinned
+  # to a release. Every action here is pinned by commit SHA, the uv cache is disabled (the
+  # example jobs populate it from pull-request code) and uvx runs outside the checkout with
+  # --no-config. Fork pull requests get a read-only token, so the job is skipped there; the
+  # example jobs still gate them.
   annotate:
     name: annotate the pull request
     needs: [python-examples, typescript-examples]
@@ -179,10 +181,10 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           pattern: attest-report-*
           path: attest-reports
@@ -205,18 +207,23 @@ jobs:
             paths="${paths}${example}/attest-report.json"$'\n'
           done
           { echo "paths<<EOF"; printf '%s' "$paths"; echo "EOF"; } >> "$GITHUB_OUTPUT"
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
           python-version: "3.12"
+          # The example jobs run pull-request code and populate the uv cache; this job holds
+          # the write token and must not restore it.
+          enable-cache: false
       - name: Cache the attest engine
         # pr-annotate calls attest-engine and never downloads it: the first `attest`
-        # command of the pinned release fetches it into ~/.attest/bin/1.0.0-rc.5/.
+        # command of the pinned release fetches it into ~/.attest/bin/<version>/. The
+        # attest-ai version below must match the pr-annotate pin (v1.0.0-rc.5 = 1.0.0rc5), or
+        # the action looks in a cache directory that was never filled.
         # Run outside the PR checkout without project config, so nothing the pull request
         # controls (uv.toml, pyproject.toml) steers the install in this write-permission job.
         working-directory: ${{ runner.temp }}
         run: uvx --no-config --from "attest-ai==1.0.0rc5" attest doctor
       - name: Summarise and annotate
-        uses: attest-framework/attest/.github/actions/pr-annotate@v1.0.0-rc.5
+        uses: attest-framework/attest/.github/actions/pr-annotate@8321f8611d597b0c5fbf51916af207b8c45e5b43 # v1.0.0-rc.5
         with:
           report: ${{ steps.reports.outputs.paths }}
           policy: attest.policy.yaml
