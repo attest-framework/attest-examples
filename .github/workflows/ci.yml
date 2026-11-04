@@ -6,8 +6,11 @@ name: Examples CI
 # (provider_not_configured) and the policy warns (exit 2) instead of passing.
 #
 # Per example: the test step records its outcome and continues, so the Attest
-# report is always uploaded, the merge policy evaluated and the pull request
-# annotated; the last step fails the job when the tests failed.
+# report is always uploaded and the merge policy evaluated; the last step fails the
+# job when the tests failed. Each example also asserts "0 live model calls" from its
+# report (.github/scripts/assert-no-live-calls.sh). The jobs that run example code
+# hold no write permission: the `annotate` job downloads every report and posts the
+# one summary comment and the annotations (pr-annotate v2).
 
 on:
   push:
@@ -22,7 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
     strategy:
       fail-fast: false
       matrix:
@@ -41,6 +43,10 @@ jobs:
           - rag-chatbot
           - semantic-similarity
           - simulation
+          - pydantic-ai
+          - openai-agents
+          - langgraph
+          - claude-agent-sdk
     defaults:
       run:
         working-directory: ${{ matrix.example }}
@@ -56,9 +62,15 @@ jobs:
       - name: Run tests
         id: tests
         continue-on-error: true
-        # --rootdir=.. makes report paths repo-relative (quickstart/test_agent.py),
-        # so annotations land on the pull request diff.
-        run: uv run pytest -v --rootdir=.. --attest-report=attest-report.json
+        # Report paths stay relative to the example; the annotate job prefixes the
+        # report's directory so annotations land on the pull request diff.
+        run: uv run pytest -v --attest-report=attest-report.json
+      - name: Assert zero live model calls
+        if: always()
+        working-directory: .
+        env:
+          EXAMPLE: ${{ matrix.example }}
+        run: .github/scripts/assert-no-live-calls.sh "$EXAMPLE" "$EXAMPLE/attest-report.json"
       - name: Upload the Attest report
         if: always()
         uses: actions/upload-artifact@v7
@@ -77,15 +89,6 @@ jobs:
             exit 0
           fi
           exit "$code"
-      - name: Annotate the pull request
-        # Fork pull requests get a read-only token that cannot post reviews; the last step
-        # still fails the job when tests failed.
-        if: >-
-          always() && github.event_name == 'pull_request' &&
-          github.event.pull_request.head.repo.full_name == github.repository
-        uses: attest-framework/attest/.github/actions/pr-annotate@v1.0.0-rc.1
-        with:
-          report: ${{ matrix.example }}/attest-report.json
       - name: Fail the job when tests failed
         if: always() && steps.tests.outcome == 'failure'
         run: |
@@ -96,7 +99,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
     strategy:
       fail-fast: false
       matrix:
@@ -105,6 +107,9 @@ jobs:
           - schema-assertions-ts
           - content-assertions-ts
           - openai-adapter-ts
+          - vercel-ai-ts
+          - mastra-ts
+          - claude-agent-sdk-ts
     defaults:
       run:
         working-directory: ${{ matrix.example }}
@@ -128,17 +133,12 @@ jobs:
         run: >-
           pnpm exec vitest run --reporter=default --reporter=@attest-ai/vitest/reporter
           --outputFile.attest=attest-report.json
-      - name: Make report paths repo-relative
-        # Vitest reports paths relative to its root (the example directory); the
-        # annotations need the path as it appears in the pull request diff.
+      - name: Assert zero live model calls
         if: always()
+        working-directory: .
         env:
           EXAMPLE: ${{ matrix.example }}
-        run: |
-          jq --arg dir "$EXAMPLE" \
-            '(.results[]?, .tests[]?) |= (if (.file | type) == "string" then .file = "\($dir)/\(.file)" else . end)' \
-            attest-report.json > attest-report.tmp.json
-          mv attest-report.tmp.json attest-report.json
+        run: .github/scripts/assert-no-live-calls.sh "$EXAMPLE" "$EXAMPLE/attest-report.json"
       - name: Upload the Attest report
         if: always()
         uses: actions/upload-artifact@v7
@@ -157,18 +157,78 @@ jobs:
             exit 0
           fi
           exit "$code"
-      - name: Annotate the pull request
-        if: >-
-          always() && github.event_name == 'pull_request' &&
-          github.event.pull_request.head.repo.full_name == github.repository
-        uses: attest-framework/attest/.github/actions/pr-annotate@v1.0.0-rc.1
-        with:
-          report: ${{ matrix.example }}/attest-report.json
       - name: Fail the job when tests failed
         if: always() && steps.tests.outcome == 'failure'
         run: |
           echo "::error::vitest failed; see the Run tests step"
           exit 1
+
+  # Posts the one summary comment and the annotations for every example (pr-annotate v2).
+  # It is the only job with `pull-requests: write`, so it runs no example code: it downloads
+  # the report artifacts (data), then runs attest-ai==1.0.0rc5 and pr-annotate, both pinned
+  # to a release. Every action here is pinned by commit SHA, the uv cache is disabled (the
+  # example jobs populate it from pull-request code) and uvx runs outside the checkout with
+  # --no-config. Fork pull requests get a read-only token, so the job is skipped there; the
+  # example jobs still gate them.
+  annotate:
+    name: annotate the pull request
+    needs: [python-examples, typescript-examples]
+    if: >-
+      !cancelled() && github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          pattern: attest-report-*
+          path: attest-reports
+      - name: Place each report beside its example
+        id: reports
+        # pr-annotate prefixes each row's file with the report's directory, so the report
+        # goes where the tests ran from.
+        run: |
+          set -eu
+          shopt -s nullglob
+          paths=""
+          for dir in attest-reports/attest-report-*/; do
+            example="${dir#attest-reports/attest-report-}"
+            example="${example%/}"
+            case "$example" in
+              ''|*[!A-Za-z0-9_-]*) echo "::error::unexpected report artifact name: $dir"; exit 1 ;;
+            esac
+            [ -d "$example" ] || { echo "::error::no example directory for report artifact: $example"; exit 1; }
+            mv "${dir}attest-report.json" "$example/attest-report.json"
+            paths="${paths}${example}/attest-report.json"$'\n'
+          done
+          { echo "paths<<EOF"; printf '%s' "$paths"; echo "EOF"; } >> "$GITHUB_OUTPUT"
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          python-version: "3.12"
+          # The example jobs run pull-request code and populate the uv cache; this job holds
+          # the write token and must not restore it.
+          enable-cache: false
+      - name: Cache the attest engine
+        # pr-annotate calls attest-engine and never downloads it: the first `attest`
+        # command of the pinned release fetches it into ~/.attest/bin/<version>/. The
+        # attest-ai version below must match the pr-annotate pin (v1.0.0-rc.5 = 1.0.0rc5), or
+        # the action looks in a cache directory that was never filled.
+        # Run outside the PR checkout without project config, so nothing the pull request
+        # controls (uv.toml, pyproject.toml) steers the install in this write-permission job.
+        working-directory: ${{ runner.temp }}
+        run: uvx --no-config --from "attest-ai==1.0.0rc5" attest doctor
+      - name: Summarise and annotate
+        uses: attest-framework/attest/.github/actions/pr-annotate@8321f8611d597b0c5fbf51916af207b8c45e5b43 # v1.0.0-rc.5
+        with:
+          report: ${{ steps.reports.outputs.paths }}
+          policy: attest.policy.yaml
+          # The example jobs already fail on a blocking violation.
+          fail-on-violation: "false"
 
   # Advisory: runs every example against attest main (unreleased), so a change on
   # main that would break the examples shows up before the next release. Its
