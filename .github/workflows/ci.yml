@@ -172,7 +172,7 @@ jobs:
     name: annotate the pull request
     needs: [python-examples, typescript-examples]
     if: >-
-      always() && github.event_name == 'pull_request' &&
+      !cancelled() && github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
@@ -192,6 +192,7 @@ jobs:
         # goes where the tests ran from.
         run: |
           set -eu
+          shopt -s nullglob
           paths=""
           for dir in attest-reports/attest-report-*/; do
             example="${dir#attest-reports/attest-report-}"
@@ -210,7 +211,10 @@ jobs:
       - name: Cache the attest engine
         # pr-annotate calls attest-engine and never downloads it: the first `attest`
         # command of the pinned release fetches it into ~/.attest/bin/1.0.0-rc.5/.
-        run: uvx --from "attest-ai==1.0.0rc5" attest doctor
+        # Run outside the PR checkout without project config, so nothing the pull request
+        # controls (uv.toml, pyproject.toml) steers the install in this write-permission job.
+        working-directory: ${{ runner.temp }}
+        run: uvx --no-config --from "attest-ai==1.0.0rc5" attest doctor
       - name: Summarise and annotate
         uses: attest-framework/attest/.github/actions/pr-annotate@v1.0.0-rc.5
         with:
