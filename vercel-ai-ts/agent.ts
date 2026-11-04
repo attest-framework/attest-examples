@@ -27,14 +27,17 @@ export async function run(
   question: string = QUESTION,
   extraExporters: SpanExporter[] = [],
 ): Promise<string> {
-  // The OTLP exporter reads OTEL_EXPORTER_OTLP_TRACES_ENDPOINT.
+  // The OTLP exporter reads OTEL_EXPORTER_OTLP_TRACES_ENDPOINT; without it, run() only exports to
+  // `extraExporters` instead of failing on the exporter's localhost:4318 default.
+  const exporters = process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+    ? [new OTLPTraceExporter(), ...extraExporters]
+    : extraExporters;
   const provider = new NodeTracerProvider({
-    spanProcessors: [new OTLPTraceExporter(), ...extraExporters].map(
-      (exporter) => new SimpleSpanProcessor(exporter),
-    ),
+    spanProcessors: exporters.map((exporter) => new SimpleSpanProcessor(exporter)),
   });
-  provider.register();
-  registerTelemetry(new OpenTelemetry());
+  // No global provider: OpenTelemetry ignores a second global registration, so a second run()
+  // in one process would export to a provider that is already shut down.
+  registerTelemetry(new OpenTelemetry({ tracer: provider.getTracer("ai") }));
   try {
     // createOpenAI reads OPENAI_BASE_URL and OPENAI_API_KEY when it is called.
     const openai = createOpenAI();
