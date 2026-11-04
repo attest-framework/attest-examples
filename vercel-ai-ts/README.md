@@ -4,8 +4,8 @@ An order-status agent on the [Vercel AI SDK](https://ai-sdk.dev/) 7 with one too
 
 The route:
 
-- `registerTelemetry(new OpenTelemetry())` and `experimental_telemetry: { isEnabled: true }` on the call. The legacy `LegacyOpenTelemetry` integration is not supported: it records no `gen_ai.operation.name`, so capture finds no steps and refuses to verify.
-- A `NodeTracerProvider` with an OTLP/HTTP exporter that reads `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`.
+- `registerTelemetry(new OpenTelemetry({ tracer: provider.getTracer("ai") }))` and `experimental_telemetry: { isEnabled: true }` on the call. The capture guide's snippet calls `provider.register()` and `new OpenTelemetry()`; `agent.ts` hands the tracer to the integration instead, because OpenTelemetry ignores a second global registration, so a second `run()` in one process would export to a provider the first call already shut down. The legacy `LegacyOpenTelemetry` integration is not supported: it records no `gen_ai.operation.name`, so capture finds no steps and refuses to verify.
+- A `NodeTracerProvider` (not registered globally) with an OTLP/HTTP exporter that reads `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`; without the variable `run()` adds no OTLP exporter.
 - `createOpenAI()` reads `OPENAI_BASE_URL`, so the recording proxy needs no code change.
 - `provider.forceFlush()` before the process exits.
 
@@ -18,6 +18,7 @@ pnpm install
 python3 ../scripted-model/server.py --port 8792 &
 OPENAI_BASE_URL=http://127.0.0.1:8792/v1 OPENAI_API_KEY=sk-fake \
   npx attest capture --name vercel-ai-ts -- npx tsx agent.ts
+kill %1   # stop the scripted server
 ```
 
 ```text
@@ -39,6 +40,8 @@ The fixture and the drafted test are committed. Against your own agent, run the 
 pnpm install && pnpm test
 ```
 
+The committed `pnpm-lock.yaml` pins the versions: strict replay matches the request the SDK builds, so a different `ai` or `@ai-sdk/openai` release can change it. CI installs with `--frozen-lockfile`.
+
 Two test files, no keys, no network to providers:
 
 - `tests/attest/vercel-ai-ts.test.ts` (drafted by capture): the contracts run on the fixture's trace.
@@ -52,7 +55,7 @@ Two test files, no keys, no network to providers:
 attest replay: 2 replayed · 0 live model calls · $0.00
 ```
 
-Change anything the model request carries (the system prompt, a tool description, the model) and strict replay fails with the changed component named:
+Change anything the model request carries (the prompt, a tool description, the model) and strict replay fails with the changed component named:
 
 ```text
 Error: replay miss: tools changed (hash b971156→87ef174); re-record with `attest capture --refresh vercel-ai-ts`

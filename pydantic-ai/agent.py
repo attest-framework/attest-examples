@@ -7,6 +7,7 @@ the standard clients.
 
 from __future__ import annotations
 
+import os
 from collections.abc import Sequence
 
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -28,8 +29,10 @@ def run(question: str = QUESTION, extra_exporters: Sequence[SpanExporter] = ()) 
     `extra_exporters` receive the same spans as the OTLP exporter; tests use one to read the trace.
     """
     provider = TracerProvider()
-    # The OTLP exporter reads OTEL_EXPORTER_OTLP_TRACES_ENDPOINT.
-    provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
+    # The OTLP exporter reads OTEL_EXPORTER_OTLP_TRACES_ENDPOINT; without it, run() only exports
+    # to `extra_exporters` instead of warning on the exporter's localhost:4318 default.
+    if os.environ.get("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"):
+        provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
     for exporter in extra_exporters:
         provider.add_span_processor(SimpleSpanProcessor(exporter))
     try:

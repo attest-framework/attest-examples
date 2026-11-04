@@ -9,6 +9,7 @@ model fails with a replay-miss message and nothing can reach a provider.
 from __future__ import annotations
 
 from collections.abc import Callable
+from pathlib import Path
 
 import pytest
 from attest import OTelAdapter, expect
@@ -17,6 +18,8 @@ from attest.replay import ReplaySession
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
 from agent import run
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 def test_pydantic_ai_replay_calls_lookup_order_once_per_order(
@@ -28,7 +31,9 @@ def test_pydantic_ai_replay_calls_lookup_order_once_per_order(
     monkeypatch.setenv("OPENAI_API_KEY", "sk-replay-dummy")
     exporter = InMemorySpanExporter()
 
-    with attest_replay("pydantic-ai"):
+    # fixtures_dir: attest_replay resolves fixtures from pytest's rootdir, which CI moves to the
+    # repo root with --rootdir=.. .
+    with attest_replay("pydantic-ai", fixtures_dir=FIXTURES_DIR):
         # The client and the exporter read the replay proxy's variables when run() builds them.
         answer = run(extra_exporters=[exporter])
 

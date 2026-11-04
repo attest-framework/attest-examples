@@ -8,8 +8,12 @@ import { attestExpect, OTelAdapter } from "@attest-ai/core";
 import { evaluate, useReplay } from "@attest-ai/vitest";
 import type { ReadableSpan, SpanExporter } from "@opentelemetry/sdk-trace-node";
 import { JsonTraceSerializer } from "@opentelemetry/otlp-transformer";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { run } from "../../agent";
+
+// Explicit, so the test does not depend on the directory Vitest runs from.
+const FIXTURES_DIR = fileURLToPath(new URL("./fixtures", import.meta.url));
 
 /** Keeps the spans it receives: InMemorySpanExporter drops them when run() shuts the provider down. */
 class CollectingExporter implements SpanExporter {
@@ -27,7 +31,7 @@ describe("vercel-ai-ts replay", () => {
     process.env.OPENAI_API_KEY = "sk-replay-dummy";
     const exporter = new CollectingExporter();
 
-    await useReplay("vercel-ai-ts", { mode: "strict", egress: "block" });
+    await useReplay("vercel-ai-ts", { mode: "strict", egress: "block", fixturesDir: FIXTURES_DIR });
     // createOpenAI and the OTLP exporter read the proxy's variables when run() builds them.
     const answer = await run(undefined, [exporter]);
 

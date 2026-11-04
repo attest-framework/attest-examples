@@ -7,6 +7,11 @@ The route:
 - `Instrumentation(InstrumentationSettings(tracer_provider=..., include_content=True, version=5))` on the agent, with an OTLP/HTTP exporter that reads `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`.
 - The model client (`OpenAIProvider()`) reads `OPENAI_BASE_URL`, so the recording proxy needs no code change.
 - `provider.force_flush()` before the process exits.
+- The OTLP exporter is added only when `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` is set.
+
+## Pinned versions
+
+Strict replay matches the request the agent sends, including the tool's JSON schema. `pydantic` and `griffelib` (docstring parsing) shape that schema, so this example commits `uv.lock` (a narrow exception in the repo's `.gitignore`) and `pyproject.toml` pins the framework and OTel packages exactly. A dependency bump then shows up as a reviewed lockfile change plus a replay miss, not as a surprise failure. Python framework examples follow this pattern: commit the example's `uv.lock` and add its `!<example>/uv.lock` line to `.gitignore`.
 
 ## Capture
 
@@ -17,6 +22,7 @@ uv sync
 python3 ../scripted-model/server.py --port 8791 &
 OPENAI_BASE_URL=http://127.0.0.1:8791/v1 OPENAI_API_KEY=sk-fake \
   uv run attest capture --name pydantic-ai -- uv run python agent.py
+kill %1   # stop the scripted server
 ```
 
 ```text
@@ -48,7 +54,7 @@ attest replay: 2 replayed · 0 live model calls · $0.00
 2 passed
 ```
 
-Change anything the model request carries (the system prompt, a tool description, the model) and strict replay fails with the changed component named:
+Change anything the model request carries (the prompt, a tool description, the model) and strict replay fails with the changed component named:
 
 ```text
 replay miss: tools changed (hash 7c0d258→8e039d0); re-record with `attest capture --refresh pydantic-ai`
