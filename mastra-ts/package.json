@@ -1,0 +1,29 @@
+{
+  "name": "attest-mastra-ts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "agent": "tsx agent.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "4.0.108",
+    "@attest-ai/core": "1.0.0-rc.5",
+    "@attest-ai/vitest": "1.0.0-rc.5",
+    "@mastra/core": "1.81.0",
+    "@mastra/observability": "1.23.0",
+    "@mastra/otel-exporter": "1.5.0",
+    "@opentelemetry/exporter-trace-otlp-http": "0.300.0",
+    "@opentelemetry/otlp-transformer": "0.219.0",
+    "@opentelemetry/sdk-trace-node": "2.12.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "tsx": "^4.23.15",
+    "typescript": "^5.4",
+    "vitest": "^4.0.0"
+  }
+}

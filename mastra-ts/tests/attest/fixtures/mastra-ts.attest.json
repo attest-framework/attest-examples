@@ -1,0 +1,348 @@
+{
+  "contracts": [
+    {
+      "description": "calls lookup_order",
+      "id": "tools-called",
+      "kind": "tools",
+      "spec": {
+        "check": "trajectory",
+        "mode": "superset",
+        "soft": false,
+        "tools": [
+          "lookup_order"
+        ]
+      },
+      "type": "trace"
+    },
+    {
+      "description": "lookup_order at most once per order_id",
+      "id": "cardinality-lookup_order-per-order_id",
+      "kind": "cardinality",
+      "spec": {
+        "check": "tool_cardinality",
+        "max": 1,
+        "per": "order_id",
+        "soft": false,
+        "tool": "lookup_order"
+      },
+      "type": "trace"
+    }
+  ],
+  "exchanges": [
+    {
+      "api": "chat_completions",
+      "index": 0,
+      "key": {
+        "model": "gpt-4.1",
+        "params": {
+          "tool_choice": "auto"
+        },
+        "prompt_hash": "sha256:9a5ec4c50cce5e10d4cd2aba0d126263381a0348b119cdabc6877e192aa5d55a",
+        "tool_schema_hash": "sha256:b7bec5de5fc86bde0dcc89a4da5ac4aef8aca08bc6e6e0c7989cdbc6ed32cab2"
+      },
+      "method": "POST",
+      "path": "/chat/completions",
+      "provider": "openai",
+      "request": {
+        "messages": [
+          {
+            "content": "Use lookup_order to answer order status questions.",
+            "role": "system"
+          },
+          {
+            "content": "Where is order O-1?",
+            "role": "user"
+          }
+        ],
+        "model": "gpt-4.1",
+        "tool_choice": "auto",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up the current shipping status of an order.",
+              "name": "lookup_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ]
+      },
+      "response": {
+        "body": {
+          "choices": [
+            {
+              "finish_reason": "tool_calls",
+              "index": 0,
+              "logprobs": null,
+              "message": {
+                "content": null,
+                "role": "assistant",
+                "tool_calls": [
+                  {
+                    "function": {
+                      "arguments": "{\"order_id\": \"O-1\"}",
+                      "name": "lookup_order"
+                    },
+                    "id": "call_1",
+                    "type": "function"
+                  }
+                ]
+              }
+            }
+          ],
+          "created": 1,
+          "id": "chatcmpl-1",
+          "model": "gpt-4.1",
+          "object": "chat.completion",
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 12,
+            "total_tokens": 19
+          }
+        },
+        "content_type": "application/json",
+        "status": 200
+      },
+      "stream": false
+    },
+    {
+      "api": "chat_completions",
+      "index": 1,
+      "key": {
+        "model": "gpt-4.1",
+        "params": {
+          "tool_choice": "auto"
+        },
+        "prompt_hash": "sha256:1bb921f4baf51009a2e0d943465badfe2ff094c9feb9cf8793ff3171fb42a765",
+        "tool_schema_hash": "sha256:b7bec5de5fc86bde0dcc89a4da5ac4aef8aca08bc6e6e0c7989cdbc6ed32cab2"
+      },
+      "method": "POST",
+      "path": "/chat/completions",
+      "provider": "openai",
+      "request": {
+        "messages": [
+          {
+            "content": "Use lookup_order to answer order status questions.",
+            "role": "system"
+          },
+          {
+            "content": "Where is order O-1?",
+            "role": "user"
+          },
+          {
+            "content": null,
+            "role": "assistant",
+            "tool_calls": [
+              {
+                "function": {
+                  "arguments": "{\"order_id\":\"O-1\"}",
+                  "name": "lookup_order"
+                },
+                "id": "call_1",
+                "type": "function"
+              }
+            ]
+          },
+          {
+            "content": "shipped",
+            "role": "tool",
+            "tool_call_id": "call_1"
+          }
+        ],
+        "model": "gpt-4.1",
+        "tool_choice": "auto",
+        "tools": [
+          {
+            "function": {
+              "description": "Look up the current shipping status of an order.",
+              "name": "lookup_order",
+              "parameters": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "additionalProperties": false,
+                "properties": {
+                  "order_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "order_id"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "function"
+          }
+        ]
+      },
+      "response": {
+        "body": {
+          "choices": [
+            {
+              "finish_reason": "stop",
+              "index": 0,
+              "logprobs": null,
+              "message": {
+                "content": "Order O-1 has shipped.",
+                "role": "assistant"
+              }
+            }
+          ],
+          "created": 2,
+          "id": "chatcmpl-1",
+          "model": "gpt-4.1",
+          "object": "chat.completion",
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 12,
+            "total_tokens": 19
+          }
+        },
+        "content_type": "application/json",
+        "status": 200
+      },
+      "stream": false
+    }
+  ],
+  "fixture_version": 1,
+  "name": "mastra-ts",
+  "source": {
+    "command": [
+      "npx",
+      "tsx",
+      "agent.ts"
+    ],
+    "exit_code": 0,
+    "kind": "command",
+    "replay_capable": true
+  },
+  "trace": {
+    "agent_id": "Order Agent",
+    "input": {},
+    "metadata": {
+      "latency_ms": 0,
+      "model": "gpt-4.1",
+      "total_tokens": 38
+    },
+    "output": {
+      "message": ""
+    },
+    "schema_version": 2,
+    "steps": [
+      {
+        "agent_id": "order-agent",
+        "agent_role": "Order Agent",
+        "args": {
+          "model": "gpt-4.1",
+          "operation": "chat",
+          "provider": "openai.chat"
+        },
+        "ended_at_ms": 4,
+        "metadata": {
+          "duration_ms": 0
+        },
+        "name": "chat gpt-4.1",
+        "parent_span_id": "0000000000000001",
+        "result": {
+          "finish_reasons": [
+            "tool-calls"
+          ],
+          "input_tokens": 12,
+          "output_tokens": 7
+        },
+        "span_id": "0000000000000002",
+        "started_at_ms": 3,
+        "type": "llm_call"
+      },
+      {
+        "args": {
+          "order_id": "O-1"
+        },
+        "ended_at_ms": 6,
+        "metadata": {
+          "duration_ms": 0
+        },
+        "name": "lookup_order",
+        "parent_span_id": "0000000000000001",
+        "result": {
+          "result": "shipped"
+        },
+        "span_id": "0000000000000003",
+        "started_at_ms": 5,
+        "tool_call_id": "call_1",
+        "type": "tool_call"
+      },
+      {
+        "agent_id": "order-agent",
+        "agent_role": "Order Agent",
+        "args": {
+          "model": "gpt-4.1",
+          "operation": "chat",
+          "provider": "openai.chat"
+        },
+        "ended_at_ms": 8,
+        "metadata": {
+          "duration_ms": 0
+        },
+        "name": "chat gpt-4.1",
+        "parent_span_id": "0000000000000004",
+        "result": {
+          "finish_reasons": [
+            "stop"
+          ],
+          "input_tokens": 12,
+          "output_tokens": 7
+        },
+        "span_id": "0000000000000005",
+        "started_at_ms": 7,
+        "type": "llm_call"
+      }
+    ],
+    "trace_id": "otel_0000000000000001",
+    "turns": [
+      {
+        "index": 0,
+        "span_id": "0000000000000006",
+        "step_indices": [
+          0,
+          1,
+          2
+        ]
+      }
+    ]
+  },
+  "verification": {
+    "expect_fail": false,
+    "expected_failures": [],
+    "results": [
+      {
+        "contract": "tools-called",
+        "explanation": "trajectory (superset) matches [lookup_order]",
+        "status": "pass"
+      },
+      {
+        "contract": "cardinality-lookup_order-per-order_id",
+        "explanation": "lookup_order within max 1 for each of 1 order_id value(s)",
+        "status": "pass"
+      }
+    ],
+    "trace_check": {
+      "errors": 0,
+      "ok": true,
+      "warnings": 0
+    },
+    "verified": true
+  },
+  "world": null
+}
