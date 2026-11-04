@@ -11,6 +11,8 @@ The route:
 - `ChatOpenAI` reads `OPENAI_BASE_URL`, so the recording proxy needs no code change.
 - `client.flush()` and `provider.force_flush()` before the process exits. Each `run()` builds its own provider and client.
 
+`create_react_agent` is deprecated upstream (moved to `langchain.agents.create_agent`, removal in LangGraph V2). The example still uses it because it is the API the capture route was verified against and it keeps the dependency set to `langgraph` and `langchain-openai`; only its `LangGraphDeprecatedSinceV10` warning is silenced. Moving to `create_agent` means adding the `langchain` package, re-capturing and re-checking the replay test.
+
 ## Pinned versions
 
 Strict replay matches the request the agent sends, including the tool's JSON schema. `langchain-core` and `pydantic` shape that schema. This example commits `uv.lock` (a narrow exception in the repo's `.gitignore`) and `pyproject.toml` pins the framework and OTel packages exactly. A dependency bump then shows up as a reviewed lockfile change plus a replay miss, not as a surprise failure.

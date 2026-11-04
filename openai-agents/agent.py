@@ -42,7 +42,9 @@ def run(question: str = QUESTION, extra_exporters: Sequence[SpanExporter] = ()) 
     # Drop the SDK's hosted trace exporter so nothing is sent to OpenAI's tracing endpoint.
     set_trace_processors([])
     instrumentor = OpenAIAgentsInstrumentor()
-    instrumentor.instrument(tracer_provider=provider, capture_message_content=True)
+    instrumentor.instrument(
+        tracer_provider=provider, capture_message_content=True, capture_metrics=False
+    )
     try:
         # The default client reads OPENAI_BASE_URL and OPENAI_API_KEY; the SDK uses the Responses API.
         agent = Agent(name="Order desk", model=MODEL, tools=[lookup_order])

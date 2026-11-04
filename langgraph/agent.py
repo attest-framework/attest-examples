@@ -16,6 +16,7 @@ from collections.abc import Sequence
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
+from langgraph.warnings import LangGraphDeprecatedSinceV10
 from langsmith import Client, tracing_context
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
@@ -50,8 +51,8 @@ def run(question: str = QUESTION, extra_exporters: Sequence[SpanExporter] = ()) 
     try:
         # ChatOpenAI reads OPENAI_BASE_URL and OPENAI_API_KEY.
         with warnings.catch_warnings():
-            # create_react_agent is deprecated upstream; the capture route is the same for its replacement.
-            warnings.simplefilter("ignore", DeprecationWarning)
+            # create_react_agent is deprecated upstream (LangGraph V1.0); see the README.
+            warnings.simplefilter("ignore", LangGraphDeprecatedSinceV10)
             graph = create_react_agent(ChatOpenAI(model=MODEL), [lookup_order])
         with tracing_context(enabled=True, client=client):
             result = graph.invoke({"messages": [("user", question)]})
