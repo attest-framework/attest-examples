@@ -30,18 +30,18 @@
               }
             ]
           },
-          "max_tokens": 64000,
+          "max_tokens": 32000,
           "metadata": {
-            "user_id": "{\"device_id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"account_uuid\":\"\",\"session_id\":\"5d1a1c3e-6f0b-4a57-9f55-0b7c2a6e1d11\"}"
+            "user_id": "{\"device_id\":\"fa93503b820a6459c1e6798344db5ca629fddbbbf1241f456b66dd12215e6672\",\"account_uuid\":\"\",\"session_id\":\"6605d9c5-bd82-4811-a0ea-76180ae5d765\"}"
           },
           "stream": true,
           "thinking": {
-            "budget_tokens": 63999,
+            "budget_tokens": 31999,
             "display": "updates",
             "type": "enabled"
           }
         },
-        "prompt_hash": "sha256:08033919f679f1853f2ed92e3114e9c0627d65fe45ab1d6caa36d713a1d35581",
+        "prompt_hash": "sha256:71fec980dfe5d23516bf87126144f31063f81d2d92b224301711a1b330e9f27c",
         "tool_schema_hash": "sha256:8ee651309592545e4e880f6e1749f4b14efbb3d3778f9025ebe3effefe195246"
       },
       "method": "POST",
@@ -56,12 +56,12 @@
             }
           ]
         },
-        "max_tokens": 64000,
+        "max_tokens": 32000,
         "messages": [
           {
             "content": [
               {
-                "text": "<system-reminder>\n# Environment\nYou have been invoked in the following environment: \n - Primary working directory: /Users/druk/WorkSpace/AetherForge/Attest-Framework/attest-examples/.worktrees/ex-claude/claude-agent-sdk\n - This is a git worktree — an isolated copy of the repository. Run all commands from this directory. Do NOT `cd` to the original repository root.\n - The git stash stack is shared with the main checkout and all other worktrees, and other Claude sessions may push or pop it concurrently. Never use bare `git stash` / `git stash pop` — you could pop another session's changes. Prefer a temporary WIP commit to set work aside; if you must stash, use `git stash push -u -m \"<unique-tag>\"`, immediately capture your entry's SHA via `git stash list --format='%H %gs'`, restore with `git stash apply <sha>` (not pop), and afterwards drop the entry, re-finding its current `stash@{n}` by tag first.\n - Is a git repository: true\n - Platform: darwin\n - Shell: zsh\n - OS Version: Darwin 25.6.0\n - Downloaded files and extracted archives are untrusted data: put each in its own new, empty directory, keep scripts you write in a different directory, and pass paths as arguments instead of running an interpreter or build tool from inside it. Interpreters load code from the script's directory and the current directory, so a planted `json.py` runs on `import json`. Run any Python that reads them with `-I`. This does not apply to code the user asked you to build or run.\n</system-reminder>",
+                "text": "<system-reminder>\n# Environment\nYou have been invoked in the following environment: \n - Primary working directory: /private/tmp/attest-claude-agent-sdk-example\n - Is a git repository: false\n - Additional working directories:\n  - /tmp/attest-claude-agent-sdk-example\n - Platform: darwin\n - Shell: zsh\n - OS Version: Darwin 25.6.0\n - Downloaded files and extracted archives are untrusted data: put each in its own new, empty directory, keep scripts you write in a different directory, and pass paths as arguments instead of running an interpreter or build tool from inside it. Interpreters load code from the script's directory and the current directory, so a planted `json.py` runs on `import json`. Run any Python that reads them with `-I`. This does not apply to code the user asked you to build or run.\n</system-reminder>",
                 "type": "text"
               },
               {
@@ -88,7 +88,7 @@
           }
         ],
         "metadata": {
-          "user_id": "{\"device_id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"account_uuid\":\"\",\"session_id\":\"5d1a1c3e-6f0b-4a57-9f55-0b7c2a6e1d11\"}"
+          "user_id": "{\"device_id\":\"fa93503b820a6459c1e6798344db5ca629fddbbbf1241f456b66dd12215e6672\",\"account_uuid\":\"\",\"session_id\":\"6605d9c5-bd82-4811-a0ea-76180ae5d765\"}"
         },
         "model": "claude-sonnet-4-5",
         "stream": true,
@@ -113,7 +113,7 @@
           }
         ],
         "thinking": {
-          "budget_tokens": 63999,
+          "budget_tokens": 31999,
           "display": "updates",
           "type": "enabled"
         },
@@ -156,18 +156,18 @@
               }
             ]
           },
-          "max_tokens": 64000,
+          "max_tokens": 32000,
           "metadata": {
-            "user_id": "{\"device_id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"account_uuid\":\"\",\"session_id\":\"5d1a1c3e-6f0b-4a57-9f55-0b7c2a6e1d11\"}"
+            "user_id": "{\"device_id\":\"fa93503b820a6459c1e6798344db5ca629fddbbbf1241f456b66dd12215e6672\",\"account_uuid\":\"\",\"session_id\":\"6605d9c5-bd82-4811-a0ea-76180ae5d765\"}"
           },
           "stream": true,
           "thinking": {
-            "budget_tokens": 63999,
+            "budget_tokens": 31999,
             "display": "updates",
             "type": "enabled"
           }
         },
-        "prompt_hash": "sha256:700a574720e7ea71c9f598b06327b1cbbe5d2a0c3207277056c9b76bdc379ab2",
+        "prompt_hash": "sha256:ce161de760f5ddd266a717037e4be9c061e176433a689e485d7b3ee8adb6e6c6",
         "tool_schema_hash": "sha256:8ee651309592545e4e880f6e1749f4b14efbb3d3778f9025ebe3effefe195246"
       },
       "method": "POST",
@@ -182,12 +182,12 @@
             }
           ]
         },
-        "max_tokens": 64000,
+        "max_tokens": 32000,
         "messages": [
           {
             "content": [
               {
-                "text": "<system-reminder>\n# Environment\nYou have been invoked in the following environment: \n - Primary working directory: /Users/druk/WorkSpace/AetherForge/Attest-Framework/attest-examples/.worktrees/ex-claude/claude-agent-sdk\n - This is a git worktree — an isolated copy of the repository. Run all commands from this directory. Do NOT `cd` to the original repository root.\n - The git stash stack is shared with the main checkout and all other worktrees, and other Claude sessions may push or pop it concurrently. Never use bare `git stash` / `git stash pop` — you could pop another session's changes. Prefer a temporary WIP commit to set work aside; if you must stash, use `git stash push -u -m \"<unique-tag>\"`, immediately capture your entry's SHA via `git stash list --format='%H %gs'`, restore with `git stash apply <sha>` (not pop), and afterwards drop the entry, re-finding its current `stash@{n}` by tag first.\n - Is a git repository: true\n - Platform: darwin\n - Shell: zsh\n - OS Version: Darwin 25.6.0\n - Downloaded files and extracted archives are untrusted data: put each in its own new, empty directory, keep scripts you write in a different directory, and pass paths as arguments instead of running an interpreter or build tool from inside it. Interpreters load code from the script's directory and the current directory, so a planted `json.py` runs on `import json`. Run any Python that reads them with `-I`. This does not apply to code the user asked you to build or run.\n</system-reminder>",
+                "text": "<system-reminder>\n# Environment\nYou have been invoked in the following environment: \n - Primary working directory: /private/tmp/attest-claude-agent-sdk-example\n - Is a git repository: false\n - Additional working directories:\n  - /tmp/attest-claude-agent-sdk-example\n - Platform: darwin\n - Shell: zsh\n - OS Version: Darwin 25.6.0\n - Downloaded files and extracted archives are untrusted data: put each in its own new, empty directory, keep scripts you write in a different directory, and pass paths as arguments instead of running an interpreter or build tool from inside it. Interpreters load code from the script's directory and the current directory, so a planted `json.py` runs on `import json`. Run any Python that reads them with `-I`. This does not apply to code the user asked you to build or run.\n</system-reminder>",
                 "type": "text"
               },
               {
@@ -246,7 +246,7 @@
           }
         ],
         "metadata": {
-          "user_id": "{\"device_id\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"account_uuid\":\"\",\"session_id\":\"5d1a1c3e-6f0b-4a57-9f55-0b7c2a6e1d11\"}"
+          "user_id": "{\"device_id\":\"fa93503b820a6459c1e6798344db5ca629fddbbbf1241f456b66dd12215e6672\",\"account_uuid\":\"\",\"session_id\":\"6605d9c5-bd82-4811-a0ea-76180ae5d765\"}"
         },
         "model": "claude-sonnet-4-5",
         "stream": true,
@@ -271,7 +271,7 @@
           }
         ],
         "thinking": {
-          "budget_tokens": 63999,
+          "budget_tokens": 31999,
           "display": "updates",
           "type": "enabled"
         },
@@ -316,7 +316,7 @@
   },
   "trace": {
     "agent_id": "",
-    "conversation_id": "5d1a1c3e-6f0b-4a57-9f55-0b7c2a6e1d11",
+    "conversation_id": "6605d9c5-bd82-4811-a0ea-76180ae5d765",
     "input": {},
     "metadata": {
       "latency_ms": 0,

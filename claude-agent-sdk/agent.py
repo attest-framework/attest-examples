@@ -1,17 +1,20 @@
 """An order-status agent built on the Claude Agent SDK, traced through Claude Code's native traces.
 
 The SDK drives its bundled Claude Code, which exports OpenTelemetry traces itself (a beta, enabled
-by the two switches in `_cli_env`). There is no attest-specific adapter: `attest capture` sets
+by the two switches in `cli_env`). There is no attest-specific adapter: `attest capture` sets
 ANTHROPIC_BASE_URL (the recording proxy) and OTEL_EXPORTER_OTLP_TRACES_ENDPOINT (the trace
 receiver), and this code hands both to the Claude Code subprocess.
+
+Claude Code is a subprocess, outside any in-process egress guard. The protection is the
+environment it receives: `cli_env` builds it from an allowlist.
 """
 
 from __future__ import annotations
 
 import asyncio
-import json
 import os
 import tempfile
+from collections.abc import Mapping
 from pathlib import Path
 
 from claude_agent_sdk import (
@@ -26,10 +29,9 @@ from claude_agent_sdk import (
 MODEL = "claude-sonnet-4-5"
 QUESTION = "Where is order O-1?"
 TOOL = "mcp__orders__lookup_order"
-# Claude Code puts a device id and a session id in every request's metadata. Strict replay matches
-# request parameters, so both are fixed: a random value would miss on every run.
-SESSION_ID = "5d1a1c3e-6f0b-4a57-9f55-0b7c2a6e1d11"
-DEVICE_ID = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+# Claude Code puts its working directory in every request, so it runs in a fixed neutral one and
+# a fixture holds no username or checkout path.
+WORKDIR = Path("/tmp/attest-claude-agent-sdk-example")
 
 
 @tool("lookup_order", "Look up the current shipping status of an order.", {"order_id": str})
@@ -37,37 +39,44 @@ async def lookup_order(args: dict[str, str]) -> dict[str, list[dict[str, str]]]:
     return {"content": [{"type": "text", "text": "shipped"}]}
 
 
-def _cli_env(home: Path, traces_endpoint: str) -> dict[str, str]:
-    """The environment of the Claude Code subprocess.
+def cli_env(home: Path, traces_endpoint: str, parent: Mapping[str, str]) -> dict[str, str]:
+    """The environment of the Claude Code subprocess, built from an allowlist.
 
-    HOME and CLAUDE_CONFIG_DIR point at a scratch directory, so no user login, settings or
-    subscription is read; the login tokens are blanked for the same reason. The model client
-    reads only ANTHROPIC_BASE_URL and ANTHROPIC_API_KEY.
+    The SDK merges the parent process environment into whatever it is given, so every inherited
+    variable that is not on the allowlist is blanked: a request setting (`CLAUDE_CODE_*`,
+    `MAX_THINKING_TOKENS`, `ANTHROPIC_MODEL`, ...) or a provider switch (`CLAUDE_CODE_USE_BEDROCK`,
+    `AWS_*`, ...) in the caller's shell never reaches Claude Code. HOME and CLAUDE_CONFIG_DIR point
+    at a scratch directory, so no user login, settings or subscription is read.
     """
-    return {
-        "HOME": str(home),
-        "CLAUDE_CONFIG_DIR": str(home / ".claude"),
-        "CLAUDE_CODE_OAUTH_TOKEN": "",
-        "ANTHROPIC_AUTH_TOKEN": "",
-        "ANTHROPIC_BASE_URL": os.environ["ANTHROPIC_BASE_URL"],
-        "ANTHROPIC_API_KEY": os.environ["ANTHROPIC_API_KEY"],
-        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
-        "DISABLE_AUTOUPDATER": "1",
-        # Native traces are off unless both switches are set; without the second, Claude Code
-        # exports metrics and logs only.
-        "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
-        "CLAUDE_CODE_ENHANCED_TELEMETRY_BETA": "1",
-        "OTEL_TRACES_EXPORTER": "otlp",
-        "OTEL_EXPORTER_OTLP_PROTOCOL": "http/json",
-        "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": traces_endpoint,
-        "OTEL_TRACES_EXPORT_INTERVAL": "100",
-        "OTEL_METRICS_EXPORTER": "none",
-        "OTEL_LOGS_EXPORTER": "none",
-        "OTEL_LOG_TOOL_DETAILS": "1",
-    }
+    env = {name: "" for name in parent}
+    env.update(
+        {
+            "PATH": parent["PATH"],
+            "TMPDIR": parent.get("TMPDIR", "/tmp"),
+            "HOME": str(home),
+            "CLAUDE_CONFIG_DIR": str(home / ".claude"),
+            "ANTHROPIC_BASE_URL": parent["ANTHROPIC_BASE_URL"],
+            "ANTHROPIC_API_KEY": parent["ANTHROPIC_API_KEY"],
+            "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+            "DISABLE_AUTOUPDATER": "1",
+            # Native traces are off unless both switches are set; without the second, Claude Code
+            # exports metrics and logs only.
+            "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+            "CLAUDE_CODE_ENHANCED_TELEMETRY_BETA": "1",
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/json",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": traces_endpoint,
+            "OTEL_TRACES_EXPORT_INTERVAL": "100",
+            "OTEL_METRICS_EXPORTER": "none",
+            "OTEL_LOGS_EXPORTER": "none",
+            "OTEL_LOG_TOOL_DETAILS": "1",
+        }
+    )
+    return env
 
 
-async def _ask(question: str, env: dict[str, str]) -> str:
+async def _ask(question: str, env: dict[str, str], cli_path: str | None) -> str:
+    WORKDIR.mkdir(exist_ok=True)
     options = ClaudeAgentOptions(
         tools=[],  # no built-in tools
         allowed_tools=[TOOL],
@@ -78,8 +87,9 @@ async def _ask(question: str, env: dict[str, str]) -> str:
         max_turns=3,
         system_prompt="Answer the user using lookup_order.",
         permission_mode="dontAsk",
-        session_id=SESSION_ID,
+        cwd=WORKDIR,
         env=env,
+        cli_path=cli_path,
     )
     answer = ""
     async with ClaudeSDKClient(options=options) as client:
@@ -91,23 +101,16 @@ async def _ask(question: str, env: dict[str, str]) -> str:
     return answer
 
 
-def _seed_config(home: Path) -> None:
-    """Write the Claude Code config the device id comes from, instead of a random one."""
-    config_dir = home / ".claude"
-    config_dir.mkdir()
-    (config_dir / ".claude.json").write_text(json.dumps({"userID": DEVICE_ID}))
-
-
-def run(question: str = QUESTION, traces_endpoint: str | None = None) -> str:
+def run(question: str = QUESTION, cli_path: str | None = None) -> str:
     """Run the agent once and return its answer, with its spans exported before returning.
 
-    `traces_endpoint` overrides OTEL_EXPORTER_OTLP_TRACES_ENDPOINT; tests point it at a local sink
-    to read the trace.
+    `cli_path` replaces the bundled Claude Code; the environment test uses it to see what the
+    subprocess receives.
     """
-    endpoint = traces_endpoint or os.environ["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"]
+    traces_endpoint = os.environ["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"]
     with tempfile.TemporaryDirectory(prefix="attest-claude-home-") as home:
-        _seed_config(Path(home))
-        return asyncio.run(_ask(question, _cli_env(Path(home), endpoint)))
+        env = cli_env(Path(home), traces_endpoint, os.environ)
+        return asyncio.run(_ask(question, env, cli_path))
 
 
 if __name__ == "__main__":

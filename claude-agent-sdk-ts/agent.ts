@@ -7,7 +7,7 @@
  * Claude Code subprocess.
  */
 import { createSdkMcpServer, query, tool, type SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -16,16 +16,9 @@ import { z } from "zod";
 const MODEL = "claude-sonnet-4-5";
 const QUESTION = "Where is order O-1?";
 const TOOL = "mcp__orders__lookup_order";
-// Claude Code puts a device id and a session id in every request's metadata. Strict replay matches
-// request parameters, so both are fixed: a random value would miss on every run.
-const SESSION_ID = "5d1a1c3e-6f0b-4a57-9f55-0b7c2a6e1d11";
-const DEVICE_ID = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-
-function required(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} is not set`);
-  return value;
-}
+// Claude Code puts its working directory in every request, so it runs in a fixed neutral one and
+// a fixture holds no username or checkout path.
+const WORKDIR = "/tmp/attest-claude-agent-sdk-example";
 
 const lookupOrder = tool(
   "lookup_order",
@@ -35,22 +28,28 @@ const lookupOrder = tool(
 );
 
 /**
- * The environment of the Claude Code subprocess. HOME and CLAUDE_CONFIG_DIR point at a scratch
- * directory, so no user login, settings or subscription is read; the login tokens are blanked for
- * the same reason. The model client reads only ANTHROPIC_BASE_URL and ANTHROPIC_API_KEY.
+ * The environment of the Claude Code subprocess, built from an allowlist: nothing else in the
+ * caller's shell (`CLAUDE_CODE_*` request settings, `CLAUDE_CODE_USE_BEDROCK`, `AWS_*`, ...) reaches
+ * Claude Code. HOME and CLAUDE_CONFIG_DIR point at a scratch directory, so no user login, settings
+ * or subscription is read.
  */
-function cliEnv(home: string, tracesEndpoint: string): Record<string, string> {
-  const inherited = Object.fromEntries(
-    Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined),
-  );
+export function cliEnv(
+  home: string,
+  tracesEndpoint: string,
+  parent: NodeJS.ProcessEnv,
+): Record<string, string> {
+  const need = (name: string): string => {
+    const value = parent[name];
+    if (!value) throw new Error(`${name} is not set`);
+    return value;
+  };
   return {
-    ...inherited,
+    PATH: need("PATH"),
+    TMPDIR: parent.TMPDIR ?? "/tmp",
     HOME: home,
     CLAUDE_CONFIG_DIR: join(home, ".claude"),
-    CLAUDE_CODE_OAUTH_TOKEN: "",
-    ANTHROPIC_AUTH_TOKEN: "",
-    ANTHROPIC_BASE_URL: required("ANTHROPIC_BASE_URL"),
-    ANTHROPIC_API_KEY: required("ANTHROPIC_API_KEY"),
+    ANTHROPIC_BASE_URL: need("ANTHROPIC_BASE_URL"),
+    ANTHROPIC_API_KEY: need("ANTHROPIC_API_KEY"),
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
     DISABLE_AUTOUPDATER: "1",
     // Native traces are off unless both switches are set; without the second, Claude Code exports
@@ -78,19 +77,18 @@ async function* userTurn(question: string): AsyncGenerator<SDKUserMessage> {
 
 /**
  * Run the agent once and return its answer, with its spans exported before returning.
- * `tracesEndpoint` overrides OTEL_EXPORTER_OTLP_TRACES_ENDPOINT; tests point it at a local sink to
- * read the trace.
+ * `pathToClaudeCodeExecutable` replaces the bundled Claude Code; the environment test uses it to
+ * see what the subprocess receives.
  */
 export async function run(
   question: string = QUESTION,
-  tracesEndpoint: string | undefined = undefined,
+  pathToClaudeCodeExecutable: string | undefined = undefined,
 ): Promise<string> {
-  const endpoint = tracesEndpoint ?? required("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT");
+  const tracesEndpoint = process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT;
+  if (!tracesEndpoint) throw new Error("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT is not set");
   const home = await mkdtemp(join(tmpdir(), "attest-claude-home-"));
   try {
-    // The Claude Code config the device id comes from, instead of a random one.
-    await mkdir(join(home, ".claude"));
-    await writeFile(join(home, ".claude", ".claude.json"), JSON.stringify({ userID: DEVICE_ID }));
+    await mkdir(WORKDIR, { recursive: true });
     const conversation = query({
       prompt: userTurn(question),
       options: {
@@ -103,8 +101,9 @@ export async function run(
         maxTurns: 3,
         systemPrompt: "Answer the user using lookup_order.",
         permissionMode: "dontAsk",
-        sessionId: SESSION_ID,
-        env: cliEnv(home, endpoint),
+        cwd: WORKDIR,
+        env: cliEnv(home, tracesEndpoint, process.env),
+        ...(pathToClaudeCodeExecutable ? { pathToClaudeCodeExecutable } : {}),
       },
     });
     let answer = "";
