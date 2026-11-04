@@ -63,13 +63,15 @@ Each example targets a specific layer of Attest's assertion stack.
 
 ## Framework capture through OpenTelemetry
 
-These frameworks are captured with `attest capture` through their own OpenTelemetry instrumentation, with no attest-specific adapter. Each example commits its fixture, the test `attest capture` drafted, and a strict replay test that runs the real agent with zero model calls and no provider key. Re-capture against [`scripted-model/`](scripted-model/), a stdlib model server.
+These frameworks are captured with `attest capture` through their own OpenTelemetry instrumentation, with no attest-specific adapter. Each example commits its fixture and the test `attest capture` drafted; all but the Claude Agent SDK examples also commit a strict replay test that runs the real agent with zero model calls and no provider key (Claude Code puts the working directory, OS and date into its requests, which replay does not normalize yet; see those READMEs). Re-capture against [`scripted-model/`](scripted-model/), a stdlib model server.
 
 | Example | Framework | Instrumentation | Run |
 |---|---|---|---|
 | [pydantic-ai/](pydantic-ai/) | Pydantic AI (Python) | native `InstrumentationSettings(version=5)` | `make test EXAMPLE=pydantic-ai` |
 | [vercel-ai-ts/](vercel-ai-ts/) | Vercel AI SDK (TypeScript) | native `@ai-sdk/otel` | `cd vercel-ai-ts && pnpm install && pnpm test` |
 | [mastra-ts/](mastra-ts/) | Mastra (TypeScript) | native `@mastra/otel-exporter` | `cd mastra-ts && pnpm install && pnpm test` |
+| [claude-agent-sdk/](claude-agent-sdk/) | Claude Agent SDK (Python) | Claude Code native traces (beta); no replay test, see its README | `make test EXAMPLE=claude-agent-sdk` |
+| [claude-agent-sdk-ts/](claude-agent-sdk-ts/) | Claude Agent SDK (TypeScript) | Claude Code native traces (beta); no replay test, see its README | `cd claude-agent-sdk-ts && pnpm install && pnpm test` |
 
 ---
 
