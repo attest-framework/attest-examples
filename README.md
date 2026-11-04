@@ -61,6 +61,17 @@ Each example targets a specific layer of Attest's assertion stack.
 
 ---
 
+## Framework capture through OpenTelemetry
+
+These frameworks are captured with `attest capture` through their own OpenTelemetry instrumentation, with no attest-specific adapter. Each example commits its fixture, the test `attest capture` drafted, and a strict replay test that runs the real agent with zero model calls and no provider key. Re-capture against [`scripted-model/`](scripted-model/), a stdlib model server.
+
+| Example | Framework | Instrumentation | Run |
+|---|---|---|---|
+| [pydantic-ai/](pydantic-ai/) | Pydantic AI (Python) | native `InstrumentationSettings(version=5)` | `make test EXAMPLE=pydantic-ai` |
+| [vercel-ai-ts/](vercel-ai-ts/) | Vercel AI SDK (TypeScript) | native `@ai-sdk/otel` | `cd vercel-ai-ts && pnpm install && pnpm test` |
+
+---
+
 ## Production Patterns
 
 | Example                              | Description                                   |
