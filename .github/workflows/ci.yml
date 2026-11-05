@@ -101,6 +101,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
           EXAMPLE: ${{ matrix.example }}
         run: .github/scripts/fetch-main-report.sh "attest-report-$EXAMPLE" "$RUNNER_TEMP/main-report"
       - name: Evaluate the merge policy
@@ -108,26 +109,7 @@ jobs:
         env:
           BASELINE_FOUND: ${{ steps.baseline.outputs.found }}
           MAIN_REPORT_DIR: ${{ runner.temp }}/main-report
-        run: |
-          set +e
-          args=(--report attest-report.json --policy ../attest.policy.yaml)
-          if [ "$BASELINE_FOUND" = "true" ]; then
-            main_report="$(find "$MAIN_REPORT_DIR" -name attest-report.json -print -quit)"
-            # attest rejects a report with no assertion results (every test skipped).
-            if jq -e '.results | length > 0' "$main_report" >/dev/null; then
-              uv run attest baseline pin --tag main --report "$main_report" || exit 1
-              args+=(--baseline main)
-            else
-              echo "::notice::the main report holds no assertion results; evaluating without a baseline"
-            fi
-          fi
-          uv run attest policy evaluate "${args[@]}"
-          code=$?
-          if [ "$code" -eq 2 ]; then
-            echo "::warning::attest policy: warnings only (exit 2)"
-            exit 0
-          fi
-          exit "$code"
+        run: ../.github/scripts/evaluate-policy.sh uv run attest
       - name: Fail the job when tests failed
         if: always() && steps.tests.outcome == 'failure'
         run: |
@@ -193,6 +175,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
           EXAMPLE: ${{ matrix.example }}
         run: .github/scripts/fetch-main-report.sh "attest-report-$EXAMPLE" "$RUNNER_TEMP/main-report"
       - name: Evaluate the merge policy
@@ -200,26 +183,7 @@ jobs:
         env:
           BASELINE_FOUND: ${{ steps.baseline.outputs.found }}
           MAIN_REPORT_DIR: ${{ runner.temp }}/main-report
-        run: |
-          set +e
-          args=(--report attest-report.json --policy ../attest.policy.yaml)
-          if [ "$BASELINE_FOUND" = "true" ]; then
-            main_report="$(find "$MAIN_REPORT_DIR" -name attest-report.json -print -quit)"
-            # attest rejects a report with no assertion results (every test skipped).
-            if jq -e '.results | length > 0' "$main_report" >/dev/null; then
-              pnpm exec attest baseline pin --tag main --report "$main_report" || exit 1
-              args+=(--baseline main)
-            else
-              echo "::notice::the main report holds no assertion results; evaluating without a baseline"
-            fi
-          fi
-          pnpm exec attest policy evaluate "${args[@]}"
-          code=$?
-          if [ "$code" -eq 2 ]; then
-            echo "::warning::attest policy: warnings only (exit 2)"
-            exit 0
-          fi
-          exit "$code"
+        run: ../.github/scripts/evaluate-policy.sh pnpm exec attest
       - name: Fail the job when tests failed
         if: always() && steps.tests.outcome == 'failure'
         run: |
@@ -231,14 +195,12 @@ jobs:
   # the report artifacts (data), then runs attest-ai==1.0.1 and pr-annotate, both pinned
   # to a release. Every action here is pinned by commit SHA, the uv cache is disabled (the
   # example jobs populate it from pull-request code) and uvx runs outside the checkout with
-  # --no-config. Fork pull requests get a read-only token, so the job is skipped there; the
-  # example jobs still gate them.
+  # --no-config. Fork pull requests run it with a read-only token: pr-annotate then emits the
+  # ::error/::warning annotations and the job summary and skips the comment.
   annotate:
     name: annotate the pull request
     needs: [python-examples, typescript-examples]
-    if: >-
-      !cancelled() && github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+    if: "!cancelled() && github.event_name == 'pull_request'"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -280,7 +242,7 @@ jobs:
       - name: Cache the attest engine
         # pr-annotate calls attest-engine and never downloads it: the first `attest`
         # command of the pinned release fetches it into ~/.attest/bin/<version>/. The
-        # attest-ai version below must match the pr-annotate pin (v1.0.0 = 1.0.0), or
+        # attest-ai version below must match the pr-annotate pin (v1.0.1 = 1.0.1), or
         # the action looks in a cache directory that was never filled.
         # Run outside the PR checkout without project config, so nothing the pull request
         # controls (uv.toml, pyproject.toml) steers the install in this write-permission job.
@@ -296,7 +258,11 @@ jobs:
       - name: Pin the main baseline
         id: pin
         # A baseline tag holds one report: merge the example reports and pin the result.
+        # A merge failure (e.g. the same assertion id in two examples) must not fail
+        # annotation: the step is non-fatal, the next step warns, and annotate runs without
+        # baseline-tag. Per-example regression gating stays in the example jobs.
         if: steps.main.outputs.found == 'true'
+        continue-on-error: true
         env:
           MAIN_REPORTS_DIR: ${{ runner.temp }}/main-reports
           MERGED_REPORT: ${{ runner.temp }}/main-merged.json
@@ -305,6 +271,9 @@ jobs:
           find "$MAIN_REPORTS_DIR" -name attest-report.json -print0 \
             | xargs -0 python3 -I .github/scripts/merge-reports.py "$MERGED_REPORT"
           (cd "$RUNNER_TEMP" && uvx --no-config --from "attest-ai==1.0.1" attest baseline pin --tag main --report "$MERGED_REPORT")
+      - name: Warn when the baseline could not be pinned
+        if: steps.pin.outcome == 'failure'
+        run: echo "::warning::could not merge and pin the main reports; annotating without a baseline (per-example regression gating still runs in the example jobs)"
       - name: Summarise and annotate
         uses: attest-framework/attest/.github/actions/pr-annotate@5d5b748b13da7ba034b3acfce631cee8fcae720c # v1.0.1
         with:
@@ -315,7 +284,7 @@ jobs:
           fail-on-violation: "false"
 
   # The one check a ruleset requires. Advisory jobs (edge) are skipped here; every other job
-  # must have passed or been skipped (annotate is skipped on pushes and fork pull requests).
+  # must have passed or been skipped (annotate is skipped on pushes).
   required:
     name: required
     needs: [python-examples, typescript-examples, annotate, edge]
