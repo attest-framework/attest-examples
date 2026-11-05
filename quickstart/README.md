@@ -4,43 +4,32 @@ A minimal example demonstrating Attest's assertion DSL for testing AI agents.
 
 ## Setup
 
-1. Install dependencies:
+Install dependencies:
 
 ```bash
 uv sync
 ```
 
-2. Build the Attest engine binary:
-
-```bash
-cd ../..
-make engine
-```
-
-Ensure the `attest-engine` binary is on your `PATH`:
-
-```bash
-export PATH="$(pwd)/dist/engine:$PATH"
-```
+The Attest engine needs no build step: the SDK downloads the release that matches the pinned `attest-ai` version on the first run and caches it under `~/.attest/bin/`.
 
 ## Running Tests
 
 Run all tests:
 
 ```bash
-pytest
+uv run pytest
 ```
 
 Run with verbose output:
 
 ```bash
-pytest -v
+uv run pytest -v
 ```
 
 Run with cost reporting:
 
 ```bash
-pytest --attest-cost-report
+uv run pytest --attest-cost-report
 ```
 
 ## Example Agent
