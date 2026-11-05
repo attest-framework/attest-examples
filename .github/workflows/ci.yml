@@ -262,7 +262,11 @@ jobs:
         run: uvx --no-config --from "attest-ai==1.0.1" attest doctor
       - name: Fetch the main reports
         id: main
+        # The example jobs enforce the baseline; here it only enriches the annotations, so a
+        # missing baseline or a failed download (artifact storage answers 503 under load)
+        # annotates without one instead of failing the job.
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -283,9 +287,9 @@ jobs:
           find "$MAIN_REPORTS_DIR" -name attest-report.json -print0 \
             | xargs -0 python3 -I .github/scripts/merge-reports.py "$MERGED_REPORT"
           (cd "$RUNNER_TEMP" && uvx --no-config --from "attest-ai==1.0.1" attest baseline pin --tag main --report "$MERGED_REPORT")
-      - name: Warn when the baseline could not be pinned
-        if: steps.pin.outcome == 'failure'
-        run: echo "::warning::could not merge and pin the main reports; annotating without a baseline (per-example regression gating still runs in the example jobs)"
+      - name: Warn when the baseline could not be fetched or pinned
+        if: steps.main.outcome == 'failure' || steps.pin.outcome == 'failure'
+        run: echo "::warning::could not fetch, merge or pin the main reports; annotating without a baseline (per-example regression gating still runs in the example jobs)"
       - name: Drop the regression rules from the policy
         id: policy
         # Without a pinned baseline `policy evaluate` exits 3 once the policy carries
