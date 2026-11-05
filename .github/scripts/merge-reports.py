@@ -2,7 +2,8 @@
 """Merge report-v2 files into one report: merge-reports.py <out> <report>...
 
 A baseline tag holds one report, so the annotate job merges every example's main report
-into the single report it pins as `main`. Assertion ids must be unique across the inputs.
+into the single report it pins as `main`. Assertion ids must be unique across the inputs. Reports from older releases may lack the
+optional totals; those count as 0.
 """
 from __future__ import annotations
 
@@ -43,11 +44,11 @@ def main(argv: list[str]) -> int:
         for key in COUNTS:
             summary[key] += report["summary"][key]
         merged["results"].extend(report["results"])  # type: ignore[union-attr]
-        merged["tests"].extend(report["tests"])  # type: ignore[union-attr]
-        merged["tests_collected"] += report["tests_collected"]  # type: ignore[operator]
-        merged["total_cost"] += report["total_cost"]  # type: ignore[operator]
-        merged["total_duration_ms"] += report["total_duration_ms"]  # type: ignore[operator]
-        merged.setdefault("timestamp", report["timestamp"])
+        merged["tests"].extend(report.get("tests", []))  # type: ignore[union-attr]
+        merged["tests_collected"] += report.get("tests_collected", 0)  # type: ignore[operator]
+        merged["total_cost"] += report.get("total_cost", 0.0)  # type: ignore[operator]
+        merged["total_duration_ms"] += report.get("total_duration_ms", 0)  # type: ignore[operator]
+        merged.setdefault("timestamp", report.get("timestamp", ""))
     out.write_text(json.dumps(merged))
     print(f"merged {len(inputs)} reports, {len(seen)} assertions -> {out}")
     return 0

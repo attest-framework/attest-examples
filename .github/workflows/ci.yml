@@ -113,8 +113,13 @@ jobs:
           args=(--report attest-report.json --policy ../attest.policy.yaml)
           if [ "$BASELINE_FOUND" = "true" ]; then
             main_report="$(find "$MAIN_REPORT_DIR" -name attest-report.json -print -quit)"
-            uv run attest baseline pin --tag main --report "$main_report" || exit 1
-            args+=(--baseline main)
+            # attest rejects a report with no assertion results (every test skipped).
+            if jq -e '.results | length > 0' "$main_report" >/dev/null; then
+              uv run attest baseline pin --tag main --report "$main_report" || exit 1
+              args+=(--baseline main)
+            else
+              echo "::notice::the main report holds no assertion results; evaluating without a baseline"
+            fi
           fi
           uv run attest policy evaluate "${args[@]}"
           code=$?
@@ -200,8 +205,13 @@ jobs:
           args=(--report attest-report.json --policy ../attest.policy.yaml)
           if [ "$BASELINE_FOUND" = "true" ]; then
             main_report="$(find "$MAIN_REPORT_DIR" -name attest-report.json -print -quit)"
-            pnpm exec attest baseline pin --tag main --report "$main_report" || exit 1
-            args+=(--baseline main)
+            # attest rejects a report with no assertion results (every test skipped).
+            if jq -e '.results | length > 0' "$main_report" >/dev/null; then
+              pnpm exec attest baseline pin --tag main --report "$main_report" || exit 1
+              args+=(--baseline main)
+            else
+              echo "::notice::the main report holds no assertion results; evaluating without a baseline"
+            fi
           fi
           pnpm exec attest policy evaluate "${args[@]}"
           code=$?
