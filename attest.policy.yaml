@@ -5,3 +5,6 @@ layers:
     max_hard_fails: 0
 # Assertions that could not run (no judge configured, simulation) warn instead of block.
 not_evaluated: warn
+# CI evaluates every pull request with --baseline main (the latest main run's report). An
+# assertion that passed on main and does not pass now blocks the merge.
+block_on_regression: true

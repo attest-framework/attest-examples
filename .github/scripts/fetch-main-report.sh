@@ -5,9 +5,8 @@
 # main into <dest-dir> (one subdirectory per artifact) and writes `found=true|false` to
 # $GITHUB_OUTPUT. Needs GH_TOKEN (actions: read, contents: read) and GH_REPO.
 #
-# BASELINE_REQUIRED=true turns a missing main report into a failure. It stays "false"
-# until a main run has uploaded reports and the policy carries a regression rule. Even then
-# a pull request that adds or renames an example cannot have a main report for it yet: for a
+# BASELINE_REQUIRED=true turns a missing main report into a failure. A pull request that
+# adds or renames an example cannot have a main report for it yet: for a
 # single artifact `attest-report-<example>` the failure applies only when the main run has no
 # attest-report-* artifact at all, or <example> exists on the pull request's base commit
 # ($BASE_SHA). Otherwise the script warns "new example" and reports found=false, and the

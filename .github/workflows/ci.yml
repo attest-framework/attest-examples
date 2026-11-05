@@ -17,9 +17,9 @@ name: Examples CI
 #
 # Baseline: every run uploads its reports. A pull request job downloads the reports of the
 # latest successful push run on main (actions: read), pins them in the job as tag `main` and
-# evaluates the policy with --baseline main. With BASELINE_REQUIRED=true a missing main
-# report fails the job ("re-run CI on main"). It is "false" while attest.policy.yaml has no
-# regression rule; the change that adds the rule sets it to "true".
+# evaluates the policy with --baseline main. attest.policy.yaml sets block_on_regression, so
+# BASELINE_REQUIRED=true: a missing main report fails the job ("re-run CI on main"), except
+# for an example that does not exist on main yet.
 #
 # `required` is the single check the ruleset requires. It runs always() and fails when any
 # job failed or was cancelled.
@@ -33,7 +33,7 @@ permissions:
   contents: read
 
 env:
-  BASELINE_REQUIRED: "false"
+  BASELINE_REQUIRED: "true"
 
 jobs:
   python-examples:
