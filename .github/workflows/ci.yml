@@ -139,6 +139,8 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+      # evaluate-policy.sh strips regression rules with PyYAML through uv when no baseline is usable.
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
       - uses: pnpm/action-setup@v4
         with:
           version: 10
