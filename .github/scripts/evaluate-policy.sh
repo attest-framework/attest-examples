@@ -33,9 +33,9 @@ fi
 if [ -n "$baseline" ]; then
   args+=(--policy "$policy" --baseline "$baseline")
 else
-  stripped="$(mktemp)"
-  awk '/^block_on_regression:/ {next} /^regression:/ {skip=1; next} skip && /^[[:space:]]/ {next} {skip=0; print}' \
-    "$policy" > "$stripped"
+  stripped="$(mktemp -d)/policy.json"
+  uv run --no-project --no-config --with pyyaml==6.0.2 python \
+    "$(dirname "$0")/strip-regression-rules.py" "$policy" "$stripped" || exit 1
   args+=(--policy "$stripped")
 fi
 

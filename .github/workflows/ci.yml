@@ -284,11 +284,27 @@ jobs:
       - name: Warn when the baseline could not be pinned
         if: steps.pin.outcome == 'failure'
         run: echo "::warning::could not merge and pin the main reports; annotating without a baseline (per-example regression gating still runs in the example jobs)"
+      - name: Drop the regression rules from the policy
+        id: policy
+        # Without a pinned baseline `policy evaluate` exits 3 once the policy carries
+        # block_on_regression or regression, and pr-annotate fails on that. Evaluate the
+        # policy minus those rules instead; per-example regression gating stays in the
+        # example jobs.
+        if: steps.pin.outcome != 'success'
+        env:
+          POLICY_OUT: ${{ runner.temp }}/policy-no-regression.json
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -eu
+          uv run --no-project --no-config --with pyyaml==6.0.2 python \
+            "$GITHUB_WORKSPACE/.github/scripts/strip-regression-rules.py" \
+            "$GITHUB_WORKSPACE/attest.policy.yaml" "$POLICY_OUT"
+          echo "path=$POLICY_OUT" >> "$GITHUB_OUTPUT"
       - name: Summarise and annotate
         uses: attest-framework/attest/.github/actions/pr-annotate@5d5b748b13da7ba034b3acfce631cee8fcae720c # v1.0.1
         with:
           report: ${{ steps.reports.outputs.paths }}
-          policy: attest.policy.yaml
+          policy: ${{ steps.policy.outputs.path || 'attest.policy.yaml' }}
           baseline-tag: ${{ steps.pin.outcome == 'success' && 'main' || '' }}
           # The example jobs already fail on a blocking violation.
           fail-on-violation: "false"
