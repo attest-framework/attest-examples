@@ -3,12 +3,13 @@ name = "attest-openai-agents"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
-    "attest-ai==1.0.0",
+    "attest-ai==1.0.1",
     "pytest>=8.0",
     "openai-agents==0.24.0",
     "opentelemetry-instrumentation-openai-agents-v2==0.1.0",
     "opentelemetry-sdk==1.45.2",
     "opentelemetry-exporter-otlp-proto-http==1.45.2",
+    "pytest-xdist>=3.5",
 ]
 
 [tool.pytest.ini_options]
