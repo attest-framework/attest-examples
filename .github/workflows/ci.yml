@@ -147,6 +147,16 @@ jobs:
           node-version: "22"
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Install the attest engine
+        # The first test would otherwise download the engine inside Vitest's 5 s test timeout,
+        # which a slow release CDN exceeds. `attest doctor` fetches it here, with retries.
+        run: |
+          for attempt in 1 2 3 4; do
+            pnpm exec attest doctor && exit 0
+            echo "::warning::engine download failed (attempt $attempt); retrying"
+            sleep $((attempt * 10))
+          done
+          exit 1
       - name: Typecheck
         run: pnpm typecheck
       - name: Run tests
