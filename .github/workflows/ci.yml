@@ -11,6 +11,18 @@ name: Examples CI
 # report (.github/scripts/assert-no-live-calls.sh). The jobs that run example code
 # hold no write permission: the `annotate` job downloads every report and posts the
 # one summary comment and the annotations (pr-annotate v2).
+#
+# Parallel runners: pytest runs with `-n auto` (the pytest plugin aggregates the worker
+# reports into one report-v2) and Vitest keeps its default pools.
+#
+# Baseline: every run uploads its reports. A pull request job downloads the reports of the
+# latest successful push run on main (actions: read), pins them in the job as tag `main` and
+# evaluates the policy with --baseline main. With BASELINE_REQUIRED=true a missing main
+# report fails the job ("re-run CI on main"). It is "false" while attest.policy.yaml has no
+# regression rule; the change that adds the rule sets it to "true".
+#
+# `required` is the single check the ruleset requires. It runs always() and fails when any
+# job failed or was cancelled.
 
 on:
   push:
@@ -20,11 +32,15 @@ on:
 permissions:
   contents: read
 
+env:
+  BASELINE_REQUIRED: "false"
+
 jobs:
   python-examples:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
     strategy:
       fail-fast: false
       matrix:
@@ -64,7 +80,7 @@ jobs:
         continue-on-error: true
         # Report paths stay relative to the example; the annotate job prefixes the
         # report's directory so annotations land on the pull request diff.
-        run: uv run pytest -v --attest-report=attest-report.json
+        run: uv run pytest -v -n auto --attest-report=attest-report.json
       - name: Assert zero live model calls
         if: always()
         working-directory: .
@@ -78,11 +94,29 @@ jobs:
           name: attest-report-${{ matrix.example }}
           path: ${{ matrix.example }}/attest-report.json
           if-no-files-found: error
+      - name: Fetch the main report
+        id: baseline
+        if: always() && github.event_name == 'pull_request'
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EXAMPLE: ${{ matrix.example }}
+        run: .github/scripts/fetch-main-report.sh "attest-report-$EXAMPLE" "$RUNNER_TEMP/main-report"
       - name: Evaluate the merge policy
         if: always()
+        env:
+          BASELINE_FOUND: ${{ steps.baseline.outputs.found }}
+          MAIN_REPORT_DIR: ${{ runner.temp }}/main-report
         run: |
           set +e
-          uv run attest policy evaluate --report attest-report.json --policy ../attest.policy.yaml
+          args=(--report attest-report.json --policy ../attest.policy.yaml)
+          if [ "$BASELINE_FOUND" = "true" ]; then
+            main_report="$(find "$MAIN_REPORT_DIR" -name attest-report.json -print -quit)"
+            uv run attest baseline pin --tag main --report "$main_report" || exit 1
+            args+=(--baseline main)
+          fi
+          uv run attest policy evaluate "${args[@]}"
           code=$?
           if [ "$code" -eq 2 ]; then
             echo "::warning::attest policy: warnings only (exit 2)"
@@ -99,6 +133,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
     strategy:
       fail-fast: false
       matrix:
@@ -146,11 +181,29 @@ jobs:
           name: attest-report-${{ matrix.example }}
           path: ${{ matrix.example }}/attest-report.json
           if-no-files-found: error
+      - name: Fetch the main report
+        id: baseline
+        if: always() && github.event_name == 'pull_request'
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EXAMPLE: ${{ matrix.example }}
+        run: .github/scripts/fetch-main-report.sh "attest-report-$EXAMPLE" "$RUNNER_TEMP/main-report"
       - name: Evaluate the merge policy
         if: always()
+        env:
+          BASELINE_FOUND: ${{ steps.baseline.outputs.found }}
+          MAIN_REPORT_DIR: ${{ runner.temp }}/main-report
         run: |
           set +e
-          pnpm exec attest policy evaluate --report attest-report.json --policy ../attest.policy.yaml
+          args=(--report attest-report.json --policy ../attest.policy.yaml)
+          if [ "$BASELINE_FOUND" = "true" ]; then
+            main_report="$(find "$MAIN_REPORT_DIR" -name attest-report.json -print -quit)"
+            pnpm exec attest baseline pin --tag main --report "$main_report" || exit 1
+            args+=(--baseline main)
+          fi
+          pnpm exec attest policy evaluate "${args[@]}"
           code=$?
           if [ "$code" -eq 2 ]; then
             echo "::warning::attest policy: warnings only (exit 2)"
@@ -165,7 +218,7 @@ jobs:
 
   # Posts the one summary comment and the annotations for every example (pr-annotate v2).
   # It is the only job with `pull-requests: write`, so it runs no example code: it downloads
-  # the report artifacts (data), then runs attest-ai==1.0.0 and pr-annotate, both pinned
+  # the report artifacts (data), then runs attest-ai==1.0.1 and pr-annotate, both pinned
   # to a release. Every action here is pinned by commit SHA, the uv cache is disabled (the
   # example jobs populate it from pull-request code) and uvx runs outside the checkout with
   # --no-config. Fork pull requests get a read-only token, so the job is skipped there; the
@@ -179,6 +232,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
       pull-requests: write
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -221,14 +275,54 @@ jobs:
         # Run outside the PR checkout without project config, so nothing the pull request
         # controls (uv.toml, pyproject.toml) steers the install in this write-permission job.
         working-directory: ${{ runner.temp }}
-        run: uvx --no-config --from "attest-ai==1.0.0" attest doctor
+        run: uvx --no-config --from "attest-ai==1.0.1" attest doctor
+      - name: Fetch the main reports
+        id: main
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: .github/scripts/fetch-main-report.sh 'attest-report-*' "$RUNNER_TEMP/main-reports"
+      - name: Pin the main baseline
+        id: pin
+        # A baseline tag holds one report: merge the example reports and pin the result.
+        if: steps.main.outputs.found == 'true'
+        env:
+          MAIN_REPORTS_DIR: ${{ runner.temp }}/main-reports
+          MERGED_REPORT: ${{ runner.temp }}/main-merged.json
+        run: |
+          set -eu
+          find "$MAIN_REPORTS_DIR" -name attest-report.json -print0 \
+            | xargs -0 python3 -I .github/scripts/merge-reports.py "$MERGED_REPORT"
+          (cd "$RUNNER_TEMP" && uvx --no-config --from "attest-ai==1.0.1" attest baseline pin --tag main --report "$MERGED_REPORT")
       - name: Summarise and annotate
-        uses: attest-framework/attest/.github/actions/pr-annotate@79348223e6926a4128777e70670ab8f52ebbc421 # v1.0.0
+        uses: attest-framework/attest/.github/actions/pr-annotate@5d5b748b13da7ba034b3acfce631cee8fcae720c # v1.0.1
         with:
           report: ${{ steps.reports.outputs.paths }}
           policy: attest.policy.yaml
+          baseline-tag: ${{ steps.pin.outcome == 'success' && 'main' || '' }}
           # The example jobs already fail on a blocking violation.
           fail-on-violation: "false"
+
+  # The one check a ruleset requires. Advisory jobs (edge) are skipped here; every other job
+  # must have passed or been skipped (annotate is skipped on pushes and fork pull requests).
+  required:
+    name: required
+    needs: [python-examples, typescript-examples, annotate, edge]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Fail when a required job failed or was cancelled
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          bad="$(echo "$NEEDS" | jq -r 'to_entries[] | select(.key != "edge") | select(.value.result == "failure" or .value.result == "cancelled") | .key')"
+          if [ -n "$bad" ]; then
+            echo "::error::failed or cancelled: $bad"
+            exit 1
+          fi
 
   # Advisory: runs every example against attest main (unreleased), so a change on
   # main that would break the examples shows up before the next release. Its
