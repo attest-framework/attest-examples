@@ -62,7 +62,7 @@ def customer_support(builder: TraceBuilder, order_id: str) -> dict[str, Any]:
 
     # Return the final output
     refund_message = (
-        f"Your refund of $89.99 has been processed successfully. "
+        f"Your refund of $89.99 has been queued. "
         f"Refund ID: RFD-001. The funds will appear in your account within 3-5 business days."
     )
 
