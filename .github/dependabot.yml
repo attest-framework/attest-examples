@@ -8,3 +8,7 @@ updates:
       github-actions:
         patterns:
           - "*"
+    # The pr-annotate pin must equal the attest-ai version installed for the annotate
+    # job (ci.yml), so attest's own actions move by hand with that version.
+    ignore:
+      - dependency-name: "attest-framework/attest*"
