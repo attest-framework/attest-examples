@@ -67,10 +67,10 @@ jobs:
       run:
         working-directory: ${{ matrix.example }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
         with:
           python-version: "3.12"
       - name: Install dependencies
@@ -89,7 +89,7 @@ jobs:
         run: .github/scripts/assert-no-live-calls.sh "$EXAMPLE" "$EXAMPLE/attest-report.json"
       - name: Upload the Attest report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: attest-report-${{ matrix.example }}
           path: ${{ matrix.example }}/attest-report.json
@@ -136,15 +136,15 @@ jobs:
       run:
         working-directory: ${{ matrix.example }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
       # evaluate-policy.sh strips regression rules with PyYAML through uv when no baseline is usable.
-      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
-      - uses: pnpm/action-setup@v4
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
         with:
           version: 10
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: "22"
       - name: Install dependencies
@@ -175,7 +175,7 @@ jobs:
         run: .github/scripts/assert-no-live-calls.sh "$EXAMPLE" "$EXAMPLE/attest-report.json"
       - name: Upload the Attest report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: attest-report-${{ matrix.example }}
           path: ${{ matrix.example }}/attest-report.json
@@ -219,10 +219,10 @@ jobs:
       actions: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           pattern: attest-report-*
           path: attest-reports
@@ -245,7 +245,7 @@ jobs:
             paths="${paths}${example}/attest-report.json"$'\n'
           done
           { echo "paths<<EOF"; printf '%s' "$paths"; echo "EOF"; } >> "$GITHUB_OUTPUT"
-      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
         with:
           python-version: "3.12"
           # The example jobs run pull-request code and populate the uv cache; this job holds
@@ -345,17 +345,17 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
-      - uses: attest-framework/attest/.github/actions/setup-attest@v1.0.0-rc.1
+      - uses: attest-framework/attest/.github/actions/setup-attest@0b2283542b288b6e1ef54af0c37b5e77339921f6 # v1.0.0-rc.1
         id: attest
         with:
           ref: main
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
         with:
           python-version: "3.12"
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
         with:
           version: 10
       - name: Python examples on attest main
