@@ -6,7 +6,7 @@ import { refundOrder } from "./agent";
 
 it.each(["O-2077", "O-2078"])("refunds and notifies the customer of %s", async (orderId) => {
   const world = await useWorld(fileURLToPath(new URL("./payments.world.yaml", import.meta.url)));
-  const trace = await refundOrder({ order_id: orderId });
+  const trace = await refundOrder.arun({ order_id: orderId });
   const snapshot = await world.state();
   await evaluate(attestExpect(trace)
     .world(snapshot)

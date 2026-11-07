@@ -1,5 +1,5 @@
 /** Real HTTP side effects against the local world; no model or provider key. */
-import { agent, type TraceBuilder } from "@attest-ai/core";
+import { Agent, type TraceBuilder } from "@attest-ai/core";
 
 async function request(path: string, body?: Record<string, unknown>) {
   const response = await fetch(process.env.PAYMENTS_BASE_URL + path, {
@@ -12,7 +12,7 @@ async function request(path: string, body?: Record<string, unknown>) {
   return await response.json() as Record<string, unknown>;
 }
 
-export const refundOrder = agent("relational-refunds", async (
+export const refundOrder = new Agent("relational-refunds", async (
   builder: TraceBuilder, args: Record<string, unknown>,
 ) => {
   const orderId = args.order_id as string;
