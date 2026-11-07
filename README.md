@@ -47,6 +47,7 @@ Each example targets a specific layer of Attest's assertion stack.
 | [simulation/](simulation/)                         | L7 — Mock tools & personas | Simulated tool calls and synthetic user personas          |
 | [multi-agent-workflow/](multi-agent-workflow/)     | L8 — Trace trees           | Assertion over multi-hop agent trace graphs               |
 | [customer-service-agent/](customer-service-agent/) | All 8 layers               | Full-stack evaluation across every assertion layer        |
+| [relational-effects/](relational-effects/)             | L3 — World effects         | Sum partial refunds per order and match notification recipients |
 
 ---
 
@@ -99,6 +100,7 @@ TypeScript ports using `@attest-ai/core` and `@attest-ai/vitest` with vitest.
 | [openai-adapter-ts/](openai-adapter-ts/)             | OpenAI chat + tool calling traces              |
 | [schema-assertions-ts/](schema-assertions-ts/)       | Layer 1 schema validation (output, fields, tools) |
 | [content-assertions-ts/](content-assertions-ts/)     | Layer 4 content checks (keywords, regex, forbids) |
+| [relational-effects-ts/](relational-effects-ts/)     | Relational world effects: refund totals and recipients |
 
 ```bash
 cd quickstart-ts && pnpm install && pnpm test
@@ -116,6 +118,29 @@ make test  EXAMPLE=llm-judge
 # Run all examples in sequence
 make test-all
 ```
+
+### Relational world effects
+
+[`relational-effects/`](relational-effects/) and
+[`relational-effects-ts/`](relational-effects-ts/) issue two partial refunds and a
+notification through real HTTP to a local, stateful payments world. No model or
+provider key is used. The `sum` check groups refunds by `order_id` and compares
+their total with the related order's amount; `matches` compares the notification
+recipient with that order's customer. Checking each tool call alone cannot prove
+either invariant.
+
+```bash
+make setup EXAMPLE=relational-effects
+make test EXAMPLE=relational-effects
+cd relational-effects-ts && pnpm install && pnpm typecheck && pnpm test
+```
+
+Each test starts an isolated world from `payments.world.yaml`; the two orders
+have different amounts and customers. Changing the second refund to the full
+order amount makes `sum` fail; sending the notification to the other customer
+makes `matches` fail. See the
+[relational effects guide](https://github.com/attest-framework/attest/blob/main/docs/guides/world-fixtures.md#relational-effects-totals-and-recipients)
+and [refund-desk](https://github.com/attest-framework/refund-desk) for a full incident.
 
 Requires [uv](https://github.com/astral-sh/uv) for Python and [pnpm](https://pnpm.io) for TypeScript.
 

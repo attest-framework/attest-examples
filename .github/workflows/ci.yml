@@ -59,6 +59,7 @@ jobs:
           - rag-chatbot
           - semantic-similarity
           - simulation
+          - relational-effects
           - pydantic-ai
           - openai-agents
           - langgraph
@@ -129,6 +130,7 @@ jobs:
           - schema-assertions-ts
           - content-assertions-ts
           - openai-adapter-ts
+          - relational-effects-ts
           - vercel-ai-ts
           - mastra-ts
           - claude-agent-sdk-ts
