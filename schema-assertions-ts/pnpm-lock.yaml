@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@attest-ai/core':
-        specifier: 1.0.1
-        version: 1.0.1
+        specifier: 1.1.0-rc.5
+        version: 1.1.0-rc.5
       '@attest-ai/vitest':
-        specifier: 1.0.1
-        version: 1.0.1(@attest-ai/core@1.0.1)(vitest@4.1.12(vite@8.3.5))
+        specifier: 1.1.0-rc.5
+        version: 1.1.0-rc.5(@attest-ai/core@1.1.0-rc.5)(vitest@4.1.12(vite@8.3.5))
     devDependencies:
       typescript:
         specifier: ^5.4
@@ -24,8 +24,8 @@ importers:
 
 packages:
 
-  '@attest-ai/core@1.0.1':
-    resolution: {integrity: sha512-PEJo3HK0ywYeknbTHeuKeHBVSmb7zwaTuasOKgbD91ON/sQnWK34DvNiibN1KfuxSTxDa4nu27lJi5ir76ANlA==}
+  '@attest-ai/core@1.1.0-rc.5':
+    resolution: {integrity: sha512-fcvVaxfwd5QIFB3K84Vo8eHbWVGexOgjShPULmPs7mC1mslOcK2t0NHlUjtk2e9HrwlN30025Grem71aJPhdpA==}
     engines: {node: '>=18'}
     hasBin: true
     peerDependencies:
@@ -34,12 +34,12 @@ packages:
       '@langchain/core':
         optional: true
 
-  '@attest-ai/vitest@1.0.1':
-    resolution: {integrity: sha512-Jn0RVBh8P3jU4NrafrAzQVsQY7aVCOoPjypUDSlcpvxrFM8958APQ62zcS09Ogv3GdaBRM6C17b1Qe+lr7y5HA==}
+  '@attest-ai/vitest@1.1.0-rc.5':
+    resolution: {integrity: sha512-DdIXx+rblCKB2/Fu0oLHDni0+QcPefoWh9NqO3+XshhOzsNH2vU9wbrVlQOYrPevkw7DEFQfDPBlXFTjLgitJw==}
     engines: {node: '>=18'}
     peerDependencies:
-      '@attest-ai/core': '>=1.0.1'
-      vitest: '>=3.0.0 <5'
+      '@attest-ai/core': '>=1.1.0-rc'
+      vitest: '>=3.0.0 <6'
 
   '@jridgewell/sourcemap-codec@1.6.0':
     resolution: {integrity: sha512-T7jf+5zgsZHwNJ4lvQ7/aezbyk0nNX+zJVWpmHA7VYsEx7a7qr5Rg5IbtJFqkgze5Y2sruq1RUY8Q837Od7iFw==}
@@ -455,11 +455,11 @@ packages:
 
 snapshots:
 
-  '@attest-ai/core@1.0.1': {}
+  '@attest-ai/core@1.1.0-rc.5': {}
 
-  '@attest-ai/vitest@1.0.1(@attest-ai/core@1.0.1)(vitest@4.1.12(vite@8.3.5))':
+  '@attest-ai/vitest@1.1.0-rc.5(@attest-ai/core@1.1.0-rc.5)(vitest@4.1.12(vite@8.3.5))':
     dependencies:
-      '@attest-ai/core': 1.0.1
+      '@attest-ai/core': 1.1.0-rc.5
       vitest: 4.1.12(vite@8.3.5)
 
   '@jridgewell/sourcemap-codec@1.6.0': {}

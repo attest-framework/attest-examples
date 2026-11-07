@@ -3,7 +3,7 @@ name = "attest-example-multi-agent"
 version = "0.1.0"
 requires-python = ">=3.10"
 dependencies = [
-    "attest-ai==1.0.1",
+    "attest-ai==1.1.0rc5",
     "pytest>=8.0",
     "pytest-xdist>=3.5",
 ]

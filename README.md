@@ -6,7 +6,7 @@
 
 Showcase examples for [Attest](https://github.com/attest-framework/attest) — the AI agent evaluation framework. Documentation: [attest-framework.github.io](https://attest-framework.github.io/).
 
-This repository holds one small, copyable example per feature or framework, and every example runs on the latest published release: `attest-ai==1.0.1` and `@attest-ai/core` / `@attest-ai/vitest` `1.0.1`. For one end-to-end story — incident, reproduction, fix, blocked regression — see [refund-desk](https://github.com/attest-framework/refund-desk).
+This repository holds one small, copyable example per feature or framework. This local 1.1.0 preparation branch pins `attest-ai==1.1.0rc5` and `@attest-ai/core` / `@attest-ai/vitest` `1.1.0-rc.5` for verification only; the final release PR will pin `1.1.0`. For one end-to-end story — incident, reproduction, fix, blocked regression — see [refund-desk](https://github.com/attest-framework/refund-desk).
 
 | Repo | Role | Tracks |
 |---|---|---|
@@ -16,8 +16,8 @@ This repository holds one small, copyable example per feature or framework, and 
 To add Attest to your own project:
 
 ```bash
-uv add "attest-ai==1.0.1"                                              # Python
-npm install -D "@attest-ai/core@1.0.1" "@attest-ai/vitest@1.0.1" vitest   # TypeScript
+uv add "attest-ai==1.1.0rc5"                                                   # Python
+npm install -D "@attest-ai/core@1.1.0-rc.5" "@attest-ai/vitest@1.1.0-rc.5" vitest # TypeScript
 ```
 
 ---
@@ -149,6 +149,10 @@ No API key is needed. Every example evaluates against the real Attest engine: sc
 ## CI
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs each example on the pinned release, writes an Attest report, evaluates [`attest.policy.yaml`](attest.policy.yaml) (any hard failure blocks; not-evaluated assertions warn) and, in a separate job that holds the only write permission, posts one summary comment and annotates each failed assertion at its test's line (`pr-annotate` v2). An advisory `edge` job runs the same examples against attest `main`.
+
+The 1.1 pin diff temporarily disables `block_on_regression` and the required-main-baseline
+check because C3 assertion/baseline identity changes in 1.1. Hard failures still block.
+Regression blocking should be restored only once main has fresh 1.1 reports for every example.
 
 ---
 

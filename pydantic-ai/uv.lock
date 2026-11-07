@@ -31,14 +31,14 @@ wheels = [
 
 [[package]]
 name = "attest-ai"
-version = "1.0.1"
+version = "1.1.0rc5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonschema" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/13/9e/dac2b8f7c6b2201f0cce5fb1b3afd4abc06467c36d502c85cf7825a16d51/attest_ai-1.0.1.tar.gz", hash = "sha256:92f14da0bba3f9b838ee003bdb67f6fd14b05d56e56fc84eee9e6260df9db5b0", size = 546996, upload-time = "2026-11-05T13:22:48.138Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bc/02/05ac90092ddd640a80e59bd64e3834b9d5fe4a4f112b2db450ebab41b2de/attest_ai-1.1.0rc5.tar.gz", hash = "sha256:b6adf241d33c3780ffa4fb1d40f1484f01efd64a59e71eb599ecf8896da960a7", size = 717553, upload-time = "2026-11-07T13:17:45.686Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/48/f3/d5320897621747efe615e3c73e664bb04d5cf1ba533ab0b26c6715cd2fa8/attest_ai-1.0.1-py3-none-any.whl", hash = "sha256:5d2d3d254789012b681e179c2c6f2e8bb39e177f0ddcaf063c95ad8511998152", size = 127782, upload-time = "2026-11-05T13:22:46.602Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/fb/e8ebac426c9e6e9563ba2e2af5e0268802a7c35302636fdef5383d91cf59/attest_ai-1.1.0rc5-py3-none-any.whl", hash = "sha256:fa308048c9f7f17d433cf0d027c80257f5d34426eddeaf5d92f44a23a1176bc4", size = 153175, upload-time = "2026-11-07T13:17:43.99Z" },
 ]
 
 [[package]]
@@ -57,7 +57,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "attest-ai", specifier = "==1.0.1" },
+    { name = "attest-ai", specifier = "==1.1.0rc5" },
     { name = "openai", specifier = "==3.45.0" },
     { name = "opentelemetry-exporter-otlp-proto-http", specifier = "==1.45.2" },
     { name = "opentelemetry-sdk", specifier = "==1.45.2" },
