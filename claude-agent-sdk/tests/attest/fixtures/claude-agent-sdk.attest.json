@@ -31,9 +31,6 @@
             ]
           },
           "max_tokens": 32000,
-          "metadata": {
-            "user_id": "{\"device_id\":\"8dd36770ba8b2aa2068271a3ddd8ca779408d1b0831792361f0823128c958601\",\"account_uuid\":\"\",\"session_id\":\"04b5d25a-f148-484e-b2c9-20d0e7a917d9\"}"
-          },
           "stream": true,
           "thinking": {
             "budget_tokens": 31999,
@@ -41,7 +38,7 @@
             "type": "enabled"
           }
         },
-        "prompt_hash": "sha256:71fec980dfe5d23516bf87126144f31063f81d2d92b224301711a1b330e9f27c",
+        "prompt_hash": "sha256:91760a6456e954fe15b36a1a763fd894e5f57029f772ccff0d141135c3bde94e",
         "tool_schema_hash": "sha256:8ee651309592545e4e880f6e1749f4b14efbb3d3778f9025ebe3effefe195246"
       },
       "method": "POST",
@@ -73,7 +70,7 @@
                 "type": "text"
               },
               {
-                "text": "<system-reminder>\nToday's date is 2026-11-04.\n</system-reminder>\n",
+                "text": "<system-reminder>\nToday's date is 2026-11-07.\n</system-reminder>\n",
                 "type": "text"
               },
               {
@@ -88,7 +85,7 @@
           }
         ],
         "metadata": {
-          "user_id": "{\"device_id\":\"8dd36770ba8b2aa2068271a3ddd8ca779408d1b0831792361f0823128c958601\",\"account_uuid\":\"\",\"session_id\":\"04b5d25a-f148-484e-b2c9-20d0e7a917d9\"}"
+          "user_id": "{\"device_id\":\"{{device_1}}\",\"account_uuid\":\"\",\"session_id\":\"{{session_1}}\"}"
         },
         "model": "claude-sonnet-4-5",
         "stream": true,
@@ -157,9 +154,6 @@
             ]
           },
           "max_tokens": 32000,
-          "metadata": {
-            "user_id": "{\"device_id\":\"8dd36770ba8b2aa2068271a3ddd8ca779408d1b0831792361f0823128c958601\",\"account_uuid\":\"\",\"session_id\":\"04b5d25a-f148-484e-b2c9-20d0e7a917d9\"}"
-          },
           "stream": true,
           "thinking": {
             "budget_tokens": 31999,
@@ -167,7 +161,7 @@
             "type": "enabled"
           }
         },
-        "prompt_hash": "sha256:ce161de760f5ddd266a717037e4be9c061e176433a689e485d7b3ee8adb6e6c6",
+        "prompt_hash": "sha256:70427aa109c86ba7449317432328aba96bd6a6db58ec07ccc8ec738f497ced76",
         "tool_schema_hash": "sha256:8ee651309592545e4e880f6e1749f4b14efbb3d3778f9025ebe3effefe195246"
       },
       "method": "POST",
@@ -199,7 +193,7 @@
                 "type": "text"
               },
               {
-                "text": "<system-reminder>\nToday's date is 2026-11-04.\n</system-reminder>\n",
+                "text": "<system-reminder>\nToday's date is 2026-11-07.\n</system-reminder>\n",
                 "type": "text"
               },
               {
@@ -246,7 +240,7 @@
           }
         ],
         "metadata": {
-          "user_id": "{\"device_id\":\"8dd36770ba8b2aa2068271a3ddd8ca779408d1b0831792361f0823128c958601\",\"account_uuid\":\"\",\"session_id\":\"04b5d25a-f148-484e-b2c9-20d0e7a917d9\"}"
+          "user_id": "{\"device_id\":\"{{device_1}}\",\"account_uuid\":\"\",\"session_id\":\"{{session_1}}\"}"
         },
         "model": "claude-sonnet-4-5",
         "stream": true,
@@ -307,6 +301,7 @@
     "command": [
       "uv",
       "run",
+      "--locked",
       "python",
       "agent.py"
     ],
@@ -316,7 +311,7 @@
   },
   "trace": {
     "agent_id": "",
-    "conversation_id": "04b5d25a-f148-484e-b2c9-20d0e7a917d9",
+    "conversation_id": "{{conversation_1}}",
     "input": {},
     "metadata": {
       "latency_ms": 0,
@@ -419,7 +414,7 @@
     "trace_check": {
       "errors": 0,
       "ok": true,
-      "warnings": 1
+      "warnings": 0
     },
     "verified": true
   },
