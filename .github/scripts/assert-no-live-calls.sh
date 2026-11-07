@@ -17,7 +17,7 @@ report="${2:?report path}"
 
 STRICT=" pydantic-ai openai-agents langgraph vercel-ai-ts mastra-ts "
 CLAUDE=" claude-agent-sdk claude-agent-sdk-ts "
-LENIENT=" quickstart continuous-eval crewai-adapter customer-service-agent drift-detection google-adk langchain-agent llamaindex-agent llm-judge multi-agent-workflow plugin-system rag-chatbot semantic-similarity simulation quickstart-ts schema-assertions-ts content-assertions-ts openai-adapter-ts "
+LENIENT=" quickstart continuous-eval crewai-adapter customer-service-agent drift-detection google-adk langchain-agent llamaindex-agent llm-judge multi-agent-workflow plugin-system rag-chatbot relational-effects semantic-similarity simulation quickstart-ts schema-assertions-ts content-assertions-ts openai-adapter-ts relational-effects-ts "
 
 fail() {
   echo "::error::${example}: $1"
