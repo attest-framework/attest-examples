@@ -15,9 +15,11 @@ name: Examples CI
 # Parallel runners: pytest runs with `-n auto` (the pytest plugin aggregates the worker
 # reports into one report-v2) and Vitest keeps its default pools.
 #
-# Baseline: every run uploads its reports. Pull requests still fetch main reports
-# for comparison, but 1.1 changes C3 baseline identity. Regression blocking is
-# disabled in the visible pin diff until a fresh 1.1 main baseline is available.
+# Baseline: every run uploads its reports. 1.1 changes C3 assertion identity (scheme 2),
+# and `attest policy evaluate` refuses a scheme-1 baseline (exit 3, "re-pin it on 1.1"),
+# so while main still holds 1.0.1 reports, COMPARE_MAIN_BASELINE is "false": pull requests
+# skip fetching main's reports and evaluate the policy without its regression rules, and
+# block_on_regression is off. A follow-up PR restores both once main has 1.1 reports.
 #
 # `required` is the single check the ruleset requires. It runs always() and fails when any
 # job failed or was cancelled.
@@ -32,6 +34,7 @@ permissions:
 
 env:
   BASELINE_REQUIRED: "false"
+  COMPARE_MAIN_BASELINE: "false"
 
 jobs:
   python-examples:
@@ -95,7 +98,7 @@ jobs:
           if-no-files-found: error
       - name: Fetch the main report
         id: baseline
-        if: always() && github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request' && env.COMPARE_MAIN_BASELINE == 'true'
         working-directory: .
         env:
           GH_TOKEN: ${{ github.token }}
@@ -182,7 +185,7 @@ jobs:
           if-no-files-found: error
       - name: Fetch the main report
         id: baseline
-        if: always() && github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request' && env.COMPARE_MAIN_BASELINE == 'true'
         working-directory: .
         env:
           GH_TOKEN: ${{ github.token }}
@@ -265,7 +268,7 @@ jobs:
         # The example jobs enforce the baseline; here it only enriches the annotations, so a
         # missing baseline or a failed download (artifact storage answers 503 under load)
         # annotates without one instead of failing the job.
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && env.COMPARE_MAIN_BASELINE == 'true'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
