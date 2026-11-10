@@ -150,7 +150,7 @@ No API key is needed. Every example evaluates against the real Attest engine: sc
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs each example on the pinned release, writes an Attest report, evaluates [`attest.policy.yaml`](attest.policy.yaml) (any hard failure blocks; not-evaluated assertions warn) and, in a separate job that holds the only write permission, posts one summary comment and annotates each failed assertion at its test's line (`pr-annotate` v2). An advisory `edge` job runs the same examples against attest `main`.
 
-The 1.1 pin diff temporarily turns off the comparison with main (`COMPARE_MAIN_BASELINE`), `block_on_regression` and the required-main-baseline check: 1.1 changes C3 assertion identity, and 1.1 refuses the 1.0.1 main reports as a baseline. Until main has 1.1 reports, regression and removal blocking are off; failed tests still block. A follow-up PR restores them once main has fresh 1.1 reports for every example.
+Pull requests compare against the latest main run's reports (`--baseline main`): an assertion that passed on main and no longer passes, or that disappeared, blocks the merge.
 
 ---
 
