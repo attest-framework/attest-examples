@@ -9,8 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@attest-ai/core": "1.1.0-rc.5",
-    "@attest-ai/vitest": "1.1.0-rc.5"
+    "@attest-ai/core": "1.1.0",
+    "@attest-ai/vitest": "1.1.0"
   },
   "devDependencies": {
     "typescript": "^5.4",

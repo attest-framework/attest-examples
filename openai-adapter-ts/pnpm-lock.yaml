@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@attest-ai/core':
-        specifier: 1.1.0-rc.5
-        version: 1.1.0-rc.5
+        specifier: 1.1.0
+        version: 1.1.0
       '@attest-ai/vitest':
-        specifier: 1.1.0-rc.5
-        version: 1.1.0-rc.5(@attest-ai/core@1.1.0-rc.5)(vitest@4.1.12(vite@8.3.5))
+        specifier: 1.1.0
+        version: 1.1.0(@attest-ai/core@1.1.0)(vitest@4.1.12(vite@8.3.5))
     devDependencies:
       typescript:
         specifier: ^5.4
@@ -24,8 +24,8 @@ importers:
 
 packages:
 
-  '@attest-ai/core@1.1.0-rc.5':
-    resolution: {integrity: sha512-fcvVaxfwd5QIFB3K84Vo8eHbWVGexOgjShPULmPs7mC1mslOcK2t0NHlUjtk2e9HrwlN30025Grem71aJPhdpA==}
+  '@attest-ai/core@1.1.0':
+    resolution: {integrity: sha512-s/UfcnOZ0MZJP+omzfoAaWVB7K4jz96LBtfgiF3uit7XMJzuHbui0R4uVPfMhIn2nZHPTeCVwaGwX+Kd2m/B9g==}
     engines: {node: '>=18'}
     hasBin: true
     peerDependencies:
@@ -34,8 +34,8 @@ packages:
       '@langchain/core':
         optional: true
 
-  '@attest-ai/vitest@1.1.0-rc.5':
-    resolution: {integrity: sha512-DdIXx+rblCKB2/Fu0oLHDni0+QcPefoWh9NqO3+XshhOzsNH2vU9wbrVlQOYrPevkw7DEFQfDPBlXFTjLgitJw==}
+  '@attest-ai/vitest@1.1.0':
+    resolution: {integrity: sha512-0Z4nXNRT/4Kb3vQauCI0MBxWEswgZ8mUjWL1iTTmHj2dcZNrXStGGUHhhK8GAg/9/n3eIvguUg6agDCRYFIIFQ==}
     engines: {node: '>=18'}
     peerDependencies:
       '@attest-ai/core': '>=1.1.0-rc'
@@ -455,11 +455,11 @@ packages:
 
 snapshots:
 
-  '@attest-ai/core@1.1.0-rc.5': {}
+  '@attest-ai/core@1.1.0': {}
 
-  '@attest-ai/vitest@1.1.0-rc.5(@attest-ai/core@1.1.0-rc.5)(vitest@4.1.12(vite@8.3.5))':
+  '@attest-ai/vitest@1.1.0(@attest-ai/core@1.1.0)(vitest@4.1.12(vite@8.3.5))':
     dependencies:
-      '@attest-ai/core': 1.1.0-rc.5
+      '@attest-ai/core': 1.1.0
       vitest: 4.1.12(vite@8.3.5)
 
   '@jridgewell/sourcemap-codec@1.6.0': {}

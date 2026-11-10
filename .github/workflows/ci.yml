@@ -204,7 +204,7 @@ jobs:
 
   # Posts the one summary comment and the annotations for every example (pr-annotate v2).
   # It is the only job with `pull-requests: write`, so it runs no example code: it downloads
-  # the report artifacts (data), then runs attest-ai==1.1.0rc5 and pr-annotate, both pinned
+  # the report artifacts (data), then runs attest-ai==1.1.0 and pr-annotate, both pinned
   # to a release. Every action here is pinned by commit SHA, the uv cache is disabled (the
   # example jobs populate it from pull-request code) and uvx runs outside the checkout with
   # --no-config. Fork pull requests run it with a read-only token: pr-annotate then emits the
@@ -254,12 +254,12 @@ jobs:
       - name: Cache the attest engine
         # pr-annotate calls attest-engine and never downloads it: the first `attest`
         # command of the pinned release fetches it into ~/.attest/bin/<version>/. The
-        # attest-ai below must match pr-annotate (v1.1.0-rc.5 = 1.1.0rc5), or
+        # attest-ai below must match pr-annotate (v1.1.0 = 1.1.0), or
         # the action looks in a cache directory that was never filled.
         # Run outside the PR checkout without project config, so nothing the pull request
         # controls (uv.toml, pyproject.toml) steers the install in this write-permission job.
         working-directory: ${{ runner.temp }}
-        run: uvx --no-config --from "attest-ai==1.1.0rc5" attest doctor
+        run: uvx --no-config --from "attest-ai==1.1.0" attest doctor
       - name: Fetch the main reports
         id: main
         # The example jobs enforce the baseline; here it only enriches the annotations, so a
@@ -286,7 +286,7 @@ jobs:
           set -eu
           find "$MAIN_REPORTS_DIR" -name attest-report.json -print0 \
             | xargs -0 python3 -I .github/scripts/merge-reports.py "$MERGED_REPORT"
-          (cd "$RUNNER_TEMP" && uvx --no-config --from "attest-ai==1.1.0rc5" attest baseline pin --tag main --report "$MERGED_REPORT")
+          (cd "$RUNNER_TEMP" && uvx --no-config --from "attest-ai==1.1.0" attest baseline pin --tag main --report "$MERGED_REPORT")
       - name: Warn when the baseline could not be fetched or pinned
         if: steps.main.outcome == 'failure' || steps.pin.outcome == 'failure'
         run: echo "::warning::could not fetch, merge or pin the main reports; annotating without a baseline (per-example regression gating still runs in the example jobs)"
@@ -307,7 +307,7 @@ jobs:
             "$GITHUB_WORKSPACE/attest.policy.yaml" "$POLICY_OUT"
           echo "path=$POLICY_OUT" >> "$GITHUB_OUTPUT"
       - name: Summarise and annotate
-        uses: attest-framework/attest/.github/actions/pr-annotate@18aeebeacf9bde5270ba7228b5290c8999b29c90 # v1.1.0-rc.5
+        uses: attest-framework/attest/.github/actions/pr-annotate@101de1cdd703b04abf5fd854f347565fd37715b8 # v1.1.0
         with:
           report: ${{ steps.reports.outputs.paths }}
           policy: ${{ steps.policy.outputs.path || 'attest.policy.yaml' }}
@@ -348,7 +348,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
-      - uses: attest-framework/attest/.github/actions/setup-attest@18aeebeacf9bde5270ba7228b5290c8999b29c90 # v1.1.0-rc.5
+      - uses: attest-framework/attest/.github/actions/setup-attest@101de1cdd703b04abf5fd854f347565fd37715b8 # v1.1.0
         id: attest
         with:
           ref: main
