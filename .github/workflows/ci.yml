@@ -262,43 +262,15 @@ jobs:
         # controls (uv.toml, pyproject.toml) steers the install in this write-permission job.
         working-directory: ${{ runner.temp }}
         run: uvx --no-config --from "attest-ai==1.1.0" attest doctor
-      - name: Fetch the main reports
-        id: main
-        # The example jobs enforce the baseline; here it only enriches the annotations, so a
-        # missing baseline or a failed download (artifact storage answers 503 under load)
-        # annotates without one instead of failing the job.
-        if: github.event_name == 'pull_request'
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: .github/scripts/fetch-main-report.sh 'attest-report-*' "$RUNNER_TEMP/main-reports"
-      - name: Pin the main baseline
-        id: pin
-        # A baseline tag holds one report: merge the example reports and pin the result.
-        # A merge failure (e.g. the same assertion id in two examples) must not fail
-        # annotation: the step is non-fatal, the next step warns, and annotate runs without
-        # baseline-tag. Per-example regression gating stays in the example jobs.
-        if: steps.main.outputs.found == 'true'
-        continue-on-error: true
-        env:
-          MAIN_REPORTS_DIR: ${{ runner.temp }}/main-reports
-          MERGED_REPORT: ${{ runner.temp }}/main-merged.json
-        run: |
-          set -eu
-          find "$MAIN_REPORTS_DIR" -name attest-report.json -print0 \
-            | xargs -0 python3 -I .github/scripts/merge-reports.py "$MERGED_REPORT"
-          (cd "$RUNNER_TEMP" && uvx --no-config --from "attest-ai==1.1.0" attest baseline pin --tag main --report "$MERGED_REPORT")
-      - name: Warn when the baseline could not be fetched or pinned
-        if: steps.main.outcome == 'failure' || steps.pin.outcome == 'failure'
-        run: echo "::warning::could not fetch, merge or pin the main reports; annotating without a baseline (per-example regression gating still runs in the example jobs)"
       - name: Drop the regression rules from the policy
         id: policy
-        # Without a pinned baseline `policy evaluate` exits 3 once the policy carries
-        # block_on_regression or regression, and pr-annotate fails on that. Evaluate the
-        # policy minus those rules instead; per-example regression gating stays in the
-        # example jobs.
-        if: steps.pin.outcome != 'success'
+        # pr-annotate evaluates every report against one baseline tag, and attest blocks an
+        # assertion that disappeared from the baseline (block_on_removal), so a merge of all
+        # examples' main reports would flag every other example's assertions as removed.
+        # Annotate without a baseline: `policy evaluate` exits 3 when the policy carries
+        # block_on_regression or regression without --baseline, so evaluate the policy minus
+        # those rules. Regression and removal gating runs in each example job against that
+        # example's own main report.
         env:
           POLICY_OUT: ${{ runner.temp }}/policy-no-regression.json
         working-directory: ${{ runner.temp }}
@@ -312,8 +284,7 @@ jobs:
         uses: attest-framework/attest/.github/actions/pr-annotate@101de1cdd703b04abf5fd854f347565fd37715b8 # v1.1.0
         with:
           report: ${{ steps.reports.outputs.paths }}
-          policy: ${{ steps.policy.outputs.path || 'attest.policy.yaml' }}
-          baseline-tag: ${{ steps.pin.outcome == 'success' && 'main' || '' }}
+          policy: ${{ steps.policy.outputs.path }}
           # The example jobs already fail on a blocking violation.
           fail-on-violation: "false"
 
