@@ -15,11 +15,11 @@ name: Examples CI
 # Parallel runners: pytest runs with `-n auto` (the pytest plugin aggregates the worker
 # reports into one report-v2) and Vitest keeps its default pools.
 #
-# Baseline: every run uploads its reports. 1.1 changes C3 assertion identity (scheme 2),
-# and `attest policy evaluate` refuses a scheme-1 baseline (exit 3, "re-pin it on 1.1"),
-# so while main still holds 1.0.1 reports, COMPARE_MAIN_BASELINE is "false": pull requests
-# skip fetching main's reports and evaluate the policy without its regression rules, and
-# block_on_regression is off. A follow-up PR restores both once main has 1.1 reports.
+# Baseline: every run uploads its reports. A pull request job downloads the reports of the
+# latest successful push run on main (actions: read), pins them in the job as tag `main` and
+# evaluates the policy with --baseline main. attest.policy.yaml sets block_on_regression, so
+# BASELINE_REQUIRED=true: a missing main report fails the job ("re-run CI on main"), except
+# for an example that does not exist on main yet.
 #
 # `required` is the single check the ruleset requires. It runs always() and fails when any
 # job failed or was cancelled.
@@ -33,8 +33,7 @@ permissions:
   contents: read
 
 env:
-  BASELINE_REQUIRED: "false"
-  COMPARE_MAIN_BASELINE: "false"
+  BASELINE_REQUIRED: "true"
 
 jobs:
   python-examples:
@@ -98,7 +97,7 @@ jobs:
           if-no-files-found: error
       - name: Fetch the main report
         id: baseline
-        if: always() && github.event_name == 'pull_request' && env.COMPARE_MAIN_BASELINE == 'true'
+        if: always() && github.event_name == 'pull_request'
         working-directory: .
         env:
           GH_TOKEN: ${{ github.token }}
@@ -185,7 +184,7 @@ jobs:
           if-no-files-found: error
       - name: Fetch the main report
         id: baseline
-        if: always() && github.event_name == 'pull_request' && env.COMPARE_MAIN_BASELINE == 'true'
+        if: always() && github.event_name == 'pull_request'
         working-directory: .
         env:
           GH_TOKEN: ${{ github.token }}
@@ -263,43 +262,15 @@ jobs:
         # controls (uv.toml, pyproject.toml) steers the install in this write-permission job.
         working-directory: ${{ runner.temp }}
         run: uvx --no-config --from "attest-ai==1.1.0" attest doctor
-      - name: Fetch the main reports
-        id: main
-        # The example jobs enforce the baseline; here it only enriches the annotations, so a
-        # missing baseline or a failed download (artifact storage answers 503 under load)
-        # annotates without one instead of failing the job.
-        if: github.event_name == 'pull_request' && env.COMPARE_MAIN_BASELINE == 'true'
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: .github/scripts/fetch-main-report.sh 'attest-report-*' "$RUNNER_TEMP/main-reports"
-      - name: Pin the main baseline
-        id: pin
-        # A baseline tag holds one report: merge the example reports and pin the result.
-        # A merge failure (e.g. the same assertion id in two examples) must not fail
-        # annotation: the step is non-fatal, the next step warns, and annotate runs without
-        # baseline-tag. Per-example regression gating stays in the example jobs.
-        if: steps.main.outputs.found == 'true'
-        continue-on-error: true
-        env:
-          MAIN_REPORTS_DIR: ${{ runner.temp }}/main-reports
-          MERGED_REPORT: ${{ runner.temp }}/main-merged.json
-        run: |
-          set -eu
-          find "$MAIN_REPORTS_DIR" -name attest-report.json -print0 \
-            | xargs -0 python3 -I .github/scripts/merge-reports.py "$MERGED_REPORT"
-          (cd "$RUNNER_TEMP" && uvx --no-config --from "attest-ai==1.1.0" attest baseline pin --tag main --report "$MERGED_REPORT")
-      - name: Warn when the baseline could not be fetched or pinned
-        if: steps.main.outcome == 'failure' || steps.pin.outcome == 'failure'
-        run: echo "::warning::could not fetch, merge or pin the main reports; annotating without a baseline (per-example regression gating still runs in the example jobs)"
       - name: Drop the regression rules from the policy
         id: policy
-        # Without a pinned baseline `policy evaluate` exits 3 once the policy carries
-        # block_on_regression or regression, and pr-annotate fails on that. Evaluate the
-        # policy minus those rules instead; per-example regression gating stays in the
-        # example jobs.
-        if: steps.pin.outcome != 'success'
+        # pr-annotate evaluates every report against one baseline tag, and attest blocks an
+        # assertion that disappeared from the baseline (block_on_removal), so a merge of all
+        # examples' main reports would flag every other example's assertions as removed.
+        # Annotate without a baseline: `policy evaluate` exits 3 when the policy carries
+        # block_on_regression or regression without --baseline, so evaluate the policy minus
+        # those rules. Regression and removal gating runs in each example job against that
+        # example's own main report.
         env:
           POLICY_OUT: ${{ runner.temp }}/policy-no-regression.json
         working-directory: ${{ runner.temp }}
@@ -313,8 +284,7 @@ jobs:
         uses: attest-framework/attest/.github/actions/pr-annotate@101de1cdd703b04abf5fd854f347565fd37715b8 # v1.1.0
         with:
           report: ${{ steps.reports.outputs.paths }}
-          policy: ${{ steps.policy.outputs.path || 'attest.policy.yaml' }}
-          baseline-tag: ${{ steps.pin.outcome == 'success' && 'main' || '' }}
+          policy: ${{ steps.policy.outputs.path }}
           # The example jobs already fail on a blocking violation.
           fail-on-violation: "false"
 
