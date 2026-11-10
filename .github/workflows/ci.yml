@@ -15,11 +15,11 @@ name: Examples CI
 # Parallel runners: pytest runs with `-n auto` (the pytest plugin aggregates the worker
 # reports into one report-v2) and Vitest keeps its default pools.
 #
-# Baseline: every run uploads its reports. A pull request job downloads the reports of the
-# latest successful push run on main (actions: read), pins them in the job as tag `main` and
-# evaluates the policy with --baseline main. attest.policy.yaml sets block_on_regression, so
-# BASELINE_REQUIRED=true: a missing main report fails the job ("re-run CI on main"), except
-# for an example that does not exist on main yet.
+# Baseline: every run uploads its reports. 1.1 changes C3 assertion identity (scheme 2),
+# and `attest policy evaluate` refuses a scheme-1 baseline (exit 3, "re-pin it on 1.1"),
+# so while main still holds 1.0.1 reports, COMPARE_MAIN_BASELINE is "false": pull requests
+# skip fetching main's reports and evaluate the policy without its regression rules, and
+# block_on_regression is off. A follow-up PR restores both once main has 1.1 reports.
 #
 # `required` is the single check the ruleset requires. It runs always() and fails when any
 # job failed or was cancelled.
@@ -33,7 +33,8 @@ permissions:
   contents: read
 
 env:
-  BASELINE_REQUIRED: "true"
+  BASELINE_REQUIRED: "false"
+  COMPARE_MAIN_BASELINE: "false"
 
 jobs:
   python-examples:
@@ -59,6 +60,7 @@ jobs:
           - rag-chatbot
           - semantic-similarity
           - simulation
+          - relational-effects
           - pydantic-ai
           - openai-agents
           - langgraph
@@ -96,7 +98,7 @@ jobs:
           if-no-files-found: error
       - name: Fetch the main report
         id: baseline
-        if: always() && github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request' && env.COMPARE_MAIN_BASELINE == 'true'
         working-directory: .
         env:
           GH_TOKEN: ${{ github.token }}
@@ -129,6 +131,7 @@ jobs:
           - schema-assertions-ts
           - content-assertions-ts
           - openai-adapter-ts
+          - relational-effects-ts
           - vercel-ai-ts
           - mastra-ts
           - claude-agent-sdk-ts
@@ -182,7 +185,7 @@ jobs:
           if-no-files-found: error
       - name: Fetch the main report
         id: baseline
-        if: always() && github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request' && env.COMPARE_MAIN_BASELINE == 'true'
         working-directory: .
         env:
           GH_TOKEN: ${{ github.token }}
@@ -204,7 +207,7 @@ jobs:
 
   # Posts the one summary comment and the annotations for every example (pr-annotate v2).
   # It is the only job with `pull-requests: write`, so it runs no example code: it downloads
-  # the report artifacts (data), then runs attest-ai==1.0.1 and pr-annotate, both pinned
+  # the report artifacts (data), then runs attest-ai==1.1.0 and pr-annotate, both pinned
   # to a release. Every action here is pinned by commit SHA, the uv cache is disabled (the
   # example jobs populate it from pull-request code) and uvx runs outside the checkout with
   # --no-config. Fork pull requests run it with a read-only token: pr-annotate then emits the
@@ -254,18 +257,18 @@ jobs:
       - name: Cache the attest engine
         # pr-annotate calls attest-engine and never downloads it: the first `attest`
         # command of the pinned release fetches it into ~/.attest/bin/<version>/. The
-        # attest-ai version below must match the pr-annotate pin (v1.0.1 = 1.0.1), or
+        # attest-ai below must match pr-annotate (v1.1.0 = 1.1.0), or
         # the action looks in a cache directory that was never filled.
         # Run outside the PR checkout without project config, so nothing the pull request
         # controls (uv.toml, pyproject.toml) steers the install in this write-permission job.
         working-directory: ${{ runner.temp }}
-        run: uvx --no-config --from "attest-ai==1.0.1" attest doctor
+        run: uvx --no-config --from "attest-ai==1.1.0" attest doctor
       - name: Fetch the main reports
         id: main
         # The example jobs enforce the baseline; here it only enriches the annotations, so a
         # missing baseline or a failed download (artifact storage answers 503 under load)
         # annotates without one instead of failing the job.
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && env.COMPARE_MAIN_BASELINE == 'true'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -286,7 +289,7 @@ jobs:
           set -eu
           find "$MAIN_REPORTS_DIR" -name attest-report.json -print0 \
             | xargs -0 python3 -I .github/scripts/merge-reports.py "$MERGED_REPORT"
-          (cd "$RUNNER_TEMP" && uvx --no-config --from "attest-ai==1.0.1" attest baseline pin --tag main --report "$MERGED_REPORT")
+          (cd "$RUNNER_TEMP" && uvx --no-config --from "attest-ai==1.1.0" attest baseline pin --tag main --report "$MERGED_REPORT")
       - name: Warn when the baseline could not be fetched or pinned
         if: steps.main.outcome == 'failure' || steps.pin.outcome == 'failure'
         run: echo "::warning::could not fetch, merge or pin the main reports; annotating without a baseline (per-example regression gating still runs in the example jobs)"
@@ -307,7 +310,7 @@ jobs:
             "$GITHUB_WORKSPACE/attest.policy.yaml" "$POLICY_OUT"
           echo "path=$POLICY_OUT" >> "$GITHUB_OUTPUT"
       - name: Summarise and annotate
-        uses: attest-framework/attest/.github/actions/pr-annotate@5d5b748b13da7ba034b3acfce631cee8fcae720c # v1.0.1
+        uses: attest-framework/attest/.github/actions/pr-annotate@101de1cdd703b04abf5fd854f347565fd37715b8 # v1.1.0
         with:
           report: ${{ steps.reports.outputs.paths }}
           policy: ${{ steps.policy.outputs.path || 'attest.policy.yaml' }}
@@ -348,7 +351,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
-      - uses: attest-framework/attest/.github/actions/setup-attest@0b2283542b288b6e1ef54af0c37b5e77339921f6 # v1.0.0-rc.1
+      - uses: attest-framework/attest/.github/actions/setup-attest@101de1cdd703b04abf5fd854f347565fd37715b8 # v1.1.0
         id: attest
         with:
           ref: main

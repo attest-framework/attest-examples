@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@attest-ai/core':
-        specifier: 1.0.1
-        version: 1.0.1
+        specifier: 1.1.0
+        version: 1.1.0
       '@attest-ai/vitest':
-        specifier: 1.0.1
-        version: 1.0.1(@attest-ai/core@1.0.1)(vitest@4.1.12(vite@8.3.5))
+        specifier: 1.1.0
+        version: 1.1.0(@attest-ai/core@1.1.0)(vitest@4.1.12(vite@8.3.5))
     devDependencies:
       typescript:
         specifier: ^5.4
@@ -24,8 +24,8 @@ importers:
 
 packages:
 
-  '@attest-ai/core@1.0.1':
-    resolution: {integrity: sha512-PEJo3HK0ywYeknbTHeuKeHBVSmb7zwaTuasOKgbD91ON/sQnWK34DvNiibN1KfuxSTxDa4nu27lJi5ir76ANlA==}
+  '@attest-ai/core@1.1.0':
+    resolution: {integrity: sha512-s/UfcnOZ0MZJP+omzfoAaWVB7K4jz96LBtfgiF3uit7XMJzuHbui0R4uVPfMhIn2nZHPTeCVwaGwX+Kd2m/B9g==}
     engines: {node: '>=18'}
     hasBin: true
     peerDependencies:
@@ -34,12 +34,12 @@ packages:
       '@langchain/core':
         optional: true
 
-  '@attest-ai/vitest@1.0.1':
-    resolution: {integrity: sha512-Jn0RVBh8P3jU4NrafrAzQVsQY7aVCOoPjypUDSlcpvxrFM8958APQ62zcS09Ogv3GdaBRM6C17b1Qe+lr7y5HA==}
+  '@attest-ai/vitest@1.1.0':
+    resolution: {integrity: sha512-0Z4nXNRT/4Kb3vQauCI0MBxWEswgZ8mUjWL1iTTmHj2dcZNrXStGGUHhhK8GAg/9/n3eIvguUg6agDCRYFIIFQ==}
     engines: {node: '>=18'}
     peerDependencies:
-      '@attest-ai/core': '>=1.0.1'
-      vitest: '>=3.0.0 <5'
+      '@attest-ai/core': '>=1.1.0-rc'
+      vitest: '>=3.0.0 <6'
 
   '@jridgewell/sourcemap-codec@1.6.0':
     resolution: {integrity: sha512-T7jf+5zgsZHwNJ4lvQ7/aezbyk0nNX+zJVWpmHA7VYsEx7a7qr5Rg5IbtJFqkgze5Y2sruq1RUY8Q837Od7iFw==}
@@ -455,11 +455,11 @@ packages:
 
 snapshots:
 
-  '@attest-ai/core@1.0.1': {}
+  '@attest-ai/core@1.1.0': {}
 
-  '@attest-ai/vitest@1.0.1(@attest-ai/core@1.0.1)(vitest@4.1.12(vite@8.3.5))':
+  '@attest-ai/vitest@1.1.0(@attest-ai/core@1.1.0)(vitest@4.1.12(vite@8.3.5))':
     dependencies:
-      '@attest-ai/core': 1.0.1
+      '@attest-ai/core': 1.1.0
       vitest: 4.1.12(vite@8.3.5)
 
   '@jridgewell/sourcemap-codec@1.6.0': {}

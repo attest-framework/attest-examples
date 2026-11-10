@@ -62,6 +62,7 @@ def build_assertions() -> list[Assertion]:
 def create_runner(client: AttestClient, sample_rate: float = 1.0) -> ContinuousEvalRunner:
     """Create a ContinuousEvalRunner with standard assertions."""
     return ContinuousEvalRunner(
+        name="qa-agent-continuous",
         client=client,
         assertions=build_assertions(),
         sample_rate=sample_rate,

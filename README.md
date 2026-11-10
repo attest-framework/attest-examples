@@ -6,7 +6,7 @@
 
 Showcase examples for [Attest](https://github.com/attest-framework/attest) — the AI agent evaluation framework. Documentation: [attest-framework.github.io](https://attest-framework.github.io/).
 
-This repository holds one small, copyable example per feature or framework, and every example runs on the latest published release: `attest-ai==1.0.1` and `@attest-ai/core` / `@attest-ai/vitest` `1.0.1`. For one end-to-end story — incident, reproduction, fix, blocked regression — see [refund-desk](https://github.com/attest-framework/refund-desk).
+This repository holds one small, copyable example per feature or framework and pins the latest stable release, 1.1.0 (`attest-ai==1.1.0` and `@attest-ai/core` / `@attest-ai/vitest` `1.1.0`). For one end-to-end story — incident, reproduction, fix, blocked regression — see [refund-desk](https://github.com/attest-framework/refund-desk).
 
 | Repo | Role | Tracks |
 |---|---|---|
@@ -16,8 +16,8 @@ This repository holds one small, copyable example per feature or framework, and 
 To add Attest to your own project:
 
 ```bash
-uv add "attest-ai==1.0.1"                                              # Python
-npm install -D "@attest-ai/core@1.0.1" "@attest-ai/vitest@1.0.1" vitest   # TypeScript
+uv add "attest-ai==1.1.0"                                                   # Python
+npm install -D "@attest-ai/core@1.1.0" "@attest-ai/vitest@1.1.0" vitest # TypeScript
 ```
 
 ---
@@ -47,6 +47,7 @@ Each example targets a specific layer of Attest's assertion stack.
 | [simulation/](simulation/)                         | L7 — Mock tools & personas | Simulated tool calls and synthetic user personas          |
 | [multi-agent-workflow/](multi-agent-workflow/)     | L8 — Trace trees           | Assertion over multi-hop agent trace graphs               |
 | [customer-service-agent/](customer-service-agent/) | All 8 layers               | Full-stack evaluation across every assertion layer        |
+| [relational-effects/](relational-effects/)             | L3 — World effects         | Sum partial refunds per order and match notification recipients |
 
 ---
 
@@ -99,6 +100,7 @@ TypeScript ports using `@attest-ai/core` and `@attest-ai/vitest` with vitest.
 | [openai-adapter-ts/](openai-adapter-ts/)             | OpenAI chat + tool calling traces              |
 | [schema-assertions-ts/](schema-assertions-ts/)       | Layer 1 schema validation (output, fields, tools) |
 | [content-assertions-ts/](content-assertions-ts/)     | Layer 4 content checks (keywords, regex, forbids) |
+| [relational-effects-ts/](relational-effects-ts/)     | Relational world effects: refund totals and recipients |
 
 ```bash
 cd quickstart-ts && pnpm install && pnpm test
@@ -117,6 +119,29 @@ make test  EXAMPLE=llm-judge
 make test-all
 ```
 
+### Relational world effects
+
+[`relational-effects/`](relational-effects/) and
+[`relational-effects-ts/`](relational-effects-ts/) issue two partial refunds and a
+notification through real HTTP to a local, stateful payments world. No model or
+provider key is used. The `sum` check groups refunds by `order_id` and compares
+their total with the related order's amount; `matches` compares the notification
+recipient with that order's customer. Checking each tool call alone cannot prove
+either invariant.
+
+```bash
+make setup EXAMPLE=relational-effects
+make test EXAMPLE=relational-effects
+cd relational-effects-ts && pnpm install && pnpm typecheck && pnpm test
+```
+
+Each test starts an isolated world from `payments.world.yaml`; the two orders
+have different amounts and customers. Changing the second refund to the full
+order amount makes `sum` fail; sending the notification to the other customer
+makes `matches` fail. See the
+[relational effects guide](https://github.com/attest-framework/attest/blob/main/docs/guides/world-fixtures.md#relational-effects-totals-and-recipients)
+and [refund-desk](https://github.com/attest-framework/refund-desk) for a full incident.
+
 Requires [uv](https://github.com/astral-sh/uv) for Python and [pnpm](https://pnpm.io) for TypeScript.
 
 No API key is needed. Every example evaluates against the real Attest engine: schema, constraint, trace, content and trace-tree assertions (layers 1–4 and 7) run on every test. Without a provider key, tests that also use embeddings (L5) or an LLM judge (L6) are skipped as `not evaluated: provider_not_configured`, and the framework examples that call a live model (`langchain-agent`, `llamaindex-agent`, `google-adk`) are skipped with the key they need. Export the keys listed in [`.env.example`](.env.example) to run them.
@@ -124,6 +149,8 @@ No API key is needed. Every example evaluates against the real Attest engine: sc
 ## CI
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs each example on the pinned release, writes an Attest report, evaluates [`attest.policy.yaml`](attest.policy.yaml) (any hard failure blocks; not-evaluated assertions warn) and, in a separate job that holds the only write permission, posts one summary comment and annotates each failed assertion at its test's line (`pr-annotate` v2). An advisory `edge` job runs the same examples against attest `main`.
+
+The 1.1 pin diff temporarily turns off the comparison with main (`COMPARE_MAIN_BASELINE`), `block_on_regression` and the required-main-baseline check: 1.1 changes C3 assertion identity, and 1.1 refuses the 1.0.1 main reports as a baseline. Until main has 1.1 reports, regression and removal blocking are off; failed tests still block. A follow-up PR restores them once main has fresh 1.1 reports for every example.
 
 ---
 

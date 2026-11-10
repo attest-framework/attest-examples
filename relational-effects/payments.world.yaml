@@ -1,0 +1,21 @@
+world_version: 1
+base_url_env: PAYMENTS_BASE_URL
+seed: 1077
+resources:
+  orders:
+    path: /orders
+    id_field: order_id
+    routes: [get]
+    seed:
+      - {order_id: O-2077, customer_id: C-0311, amount_cents: 12600}
+      - {order_id: O-2078, customer_id: C-0520, amount_cents: 5000}
+  refunds:
+    path: /refunds
+    id_field: refund_id
+    id_format: "R-%04d"
+    routes: [create, list]
+  notifications:
+    path: /notifications
+    id_field: notification_id
+    id_format: "N-%04d"
+    routes: [create, list]
