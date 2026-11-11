@@ -2,6 +2,8 @@
 
 An order-status agent on the [Vercel AI SDK](https://ai-sdk.dev/) 7 with one tool, `lookup_order`, run through `generateText` over several steps. `attest capture` records its run through the SDK's native OpenTelemetry integration (`@ai-sdk/otel`): there is no attest-specific adapter. See the [Frameworks section of the capture guide](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks).
 
+Run the commands below from `vercel-ai-ts/`. The example pins Attest 1.1.0. Start with [Test](#test) to run the committed fixture and strict-replay tests without a real API key; capture is only needed to record a new fixture.
+
 The route:
 
 - `registerTelemetry(new OpenTelemetry({ tracer: provider.getTracer("ai") }))` and `experimental_telemetry: { isEnabled: true }` on the call. The capture guide's snippet calls `provider.register()` and `new OpenTelemetry()`; `agent.ts` hands the tracer to the integration instead, because OpenTelemetry ignores a second global registration, so a second `run()` in one process would export to a provider the first call already shut down. The legacy `LegacyOpenTelemetry` integration is not supported: it records no `gen_ai.operation.name`, so capture finds no steps and refuses to verify.
@@ -37,8 +39,12 @@ The fixture and the drafted test are committed. Against your own agent, run the 
 ## Test
 
 ```bash
-pnpm install && pnpm test
+pnpm install
+npx attest doctor
+pnpm test
 ```
+
+Run `npx attest doctor` once before the first test to download and check the engine outside Vitest's test timeout. Otherwise a cold engine download can exceed the default 5-second timeout.
 
 The committed `pnpm-lock.yaml` pins the versions: strict replay matches the request the SDK builds, so a different `ai` or `@ai-sdk/openai` release can change it. CI installs with `--frozen-lockfile`.
 

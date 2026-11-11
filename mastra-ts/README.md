@@ -2,6 +2,8 @@
 
 An order-status agent on [Mastra](https://mastra.ai/) with one tool, `lookup_order`, run through `agent.generate`. `attest capture` records its run through Mastra's native OpenTelemetry exporter (`@mastra/otel-exporter`): there is no attest-specific adapter. See the [Frameworks section of the capture guide](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks).
 
+Run the commands below from `mastra-ts/`. The example pins Attest 1.1.0. Start with [Test](#test) to run the committed fixture and strict-replay tests without a real API key; capture is only needed to record a new fixture.
+
 The route:
 
 - `new Observability({ configs: { otel: { exporters: [new OtelExporter(...)] } } })` passed to `new Mastra({ observability })`, with a custom OTLP/HTTP endpoint read from `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` and `protocol: "http/json"`. `agent.ts` builds the `Observability` inside `run()` so a second call in one process does not export through an instance the first call already shut down; without the variable `run()` adds no OTLP exporter.
@@ -38,8 +40,12 @@ The fixture and the drafted test are committed. Against your own agent, run the 
 ## Test
 
 ```bash
-pnpm install && pnpm test
+pnpm install
+npx attest doctor
+pnpm test
 ```
+
+Run `npx attest doctor` once before the first test to download and check the engine outside Vitest's test timeout. This example also increases the timeout for Mastra's cold startup.
 
 The committed `pnpm-lock.yaml` pins the versions: strict replay matches the request Mastra and `@ai-sdk/openai` build, so a different release can change it. CI installs with `--frozen-lockfile`.
 

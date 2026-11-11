@@ -2,6 +2,8 @@
 
 An order-status agent on [Pydantic AI](https://ai.pydantic.dev/) with one tool, `lookup_order(order_id)`. `attest capture` records its run through Pydantic AI's native OpenTelemetry instrumentation: there is no attest-specific adapter. See the [Frameworks section of the capture guide](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks).
 
+Run the commands below from `pydantic-ai/`. The example pins Attest 1.1.0. To try it, run `uv sync`, then start with [Test](#test): the committed fixture and replay tests need no real API key, and you do not need to capture first.
+
 The route:
 
 - `Instrumentation(InstrumentationSettings(tracer_provider=..., include_content=True, version=5))` on the agent, with an OTLP/HTTP exporter that reads `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`.

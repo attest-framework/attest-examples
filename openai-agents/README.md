@@ -2,6 +2,8 @@
 
 An order-status agent on the [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) with one tool, `lookup_order(order_id)`. `attest capture` records its run through the OpenTelemetry project's [`opentelemetry-instrumentation-openai-agents-v2`](https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/instrumentation-genai/opentelemetry-instrumentation-openai-agents-v2): there is no attest-specific adapter. See the [Frameworks section of the capture guide](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks).
 
+Run the commands below from `openai-agents/`. The example pins Attest 1.1.0. To try it, run `uv sync`, then start with [Test](#test): the committed fixture and replay tests need no real API key, and you do not need to capture first.
+
 The instrumentation is alpha. It emits `unknown` spans for SDK internals, which capture does not turn into steps, and its tool spans carry no `gen_ai.tool.call.id`, so trace check pairs them by order. Use this package, not the similarly named Traceloop `opentelemetry-instrumentation-openai-agents`: the two share an import namespace and the Traceloop spans fail trace check on the missing tool-call ID.
 
 The route:
