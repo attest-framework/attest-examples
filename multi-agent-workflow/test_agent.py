@@ -1,6 +1,6 @@
-"""Tests demonstrating Layer 8 — Multi-Agent Trace Tree assertions.
+"""Tests demonstrating multi-agent trace-tree assertions within Layer 3.
 
-Layer 8 provides cross-agent analysis via TraceTree:
+TraceTree provides cross-agent analysis:
 - agent_called(): verify sub-agents were invoked
 - delegation_depth(): limit nesting depth
 - follows_transitions(): verify delegation chains
@@ -20,7 +20,7 @@ def test_research_pipeline_delegation(attest) -> None:
 
     chain = (
         expect(result)
-        # Layer 8: Trace tree assertions
+        # Layer 3: Trace-tree assertions
         .agent_called("researcher")
         .agent_called("writer")
         # Verify delegation chain follows expected transitions
@@ -41,7 +41,7 @@ def test_research_pipeline_cost_budget(attest) -> None:
 
     chain = (
         expect(result)
-        # Layer 8: Aggregate cost across entire trace tree
+        # Layer 3: Aggregate cost across the entire trace tree
         .aggregate_cost_under(0.10)
         .aggregate_tokens_under(1000)
         # Layer 2: Orchestrator's own cost
@@ -57,9 +57,9 @@ def test_researcher_output_quality(attest) -> None:
 
     chain = (
         expect(result)
-        # Layer 8: Check sub-agent output content
+        # Layer 3: Check sub-agent output content
         .agent_output_contains("researcher", "testing")
-        # Layer 8: Verify data flows from researcher to writer
+        # Layer 3: Verify data flows from researcher to writer
         .cross_agent_data_flow("researcher", "writer", "message")
         # Layer 4: Final output should reflect research
         .output_contains("testing")

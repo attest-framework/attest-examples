@@ -43,7 +43,7 @@ The example includes a simple customer support agent that:
 
 ## Assertions Demonstrated
 
-The tests cover the four deterministic assertion layers below, not all eight layers:
+The tests cover the four deterministic assertion layers below:
 
 - **Layer 1 (Schema)**: Output matches a JSON Schema
 - **Layer 2 (Constraints)**: Cost, latency, and token budgets
