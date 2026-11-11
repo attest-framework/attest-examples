@@ -2,6 +2,8 @@
 
 An order-status agent on [LangGraph](https://langchain-ai.github.io/langgraph/) (`create_react_agent`) with one tool, `lookup_order(order_id)`. `attest capture` records its run through LangSmith's OpenTelemetry mode: there is no attest-specific adapter. See the [Frameworks section of the capture guide](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks).
 
+Run the commands below from `langgraph/`. The example pins Attest 1.1.0. To try it, run `uv sync`, then start with [Test](#test): the committed fixture and replay tests need no real API key, and you do not need to capture first.
+
 Nothing is sent to LangSmith. The client runs in OTel mode with a tracer provider the example owns, so spans reach only that provider's exporters, and the LangSmith key is a placeholder that is never used. LangSmith exports every runnable as a span with `gen_ai.operation.name=chain`; capture ignores those and keeps the `chat` and `execute_tool` spans.
 
 The route:

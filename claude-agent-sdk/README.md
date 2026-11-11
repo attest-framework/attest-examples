@@ -2,6 +2,8 @@
 
 An order-status agent on the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview) with one in-process MCP tool, `lookup_order`. The SDK drives its bundled Claude Code, and `attest capture` records the run through Claude Code's native OpenTelemetry traces: there is no attest-specific adapter. See the [Frameworks section of the capture guide](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks).
 
+Run the commands below from `claude-agent-sdk/`. The example pins Attest 1.1.0. To try it, run `uv sync`, then start with [Test](#test): the committed tests need no real API key and do not call a model. They test the recorded trace and subprocess environment, not a real-agent replay.
+
 The route:
 
 - Claude Code's traces are a beta and are off unless `CLAUDE_CODE_ENABLE_TELEMETRY=1` and `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1` are both set. Without the second, Claude Code exports metrics and logs only and capture finds no steps. `agent.py` sets both for the Claude Code subprocess, with `OTEL_TRACES_EXPORTER=otlp`, `OTEL_EXPORTER_OTLP_PROTOCOL=http/json`, the metrics and logs exporters set to `none`, and `OTEL_LOG_TOOL_DETAILS=1`.
@@ -43,7 +45,7 @@ capture claude-agent-sdk: tests/attest/fixtures/claude-agent-sdk.attest.json
 uv run pytest -v
 ```
 
-Two tests, no keys, no model calls, no network:
+Two tests, no keys, no model calls and no provider network requests (the first engine download still needs network):
 
 - `tests/attest/test_claude_agent_sdk.py` (drafted by capture): the contracts run on the fixture's recorded trace.
 - `tests/attest/test_claude_agent_sdk_env.py`: runs the real SDK against a stand-in for the Claude Code binary and checks that sentinel request and provider settings in the parent environment do not reach it.

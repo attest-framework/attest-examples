@@ -1,6 +1,6 @@
-"""Tests demonstrating Layer 7 — Simulation with personas and mock tools.
+"""Tests demonstrating simulation with personas and mock tools.
 
-Layer 7 enables testing agent behavior under controlled conditions:
+Simulation is a runtime for testing agent behavior under controlled conditions:
 - MockToolRegistry: intercepts tool calls with deterministic responses
 - mock_tool decorator: registers mock functions for specific tools
 - Personas: predefined user behavior profiles (friendly, adversarial, confused)

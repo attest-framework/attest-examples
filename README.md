@@ -1,166 +1,123 @@
 [![Attest Examples](assets/banner.png)](https://github.com/attest-framework/attest-examples)
 
----
-
 # attest-examples
 
-Showcase examples for [Attest](https://github.com/attest-framework/attest) — the AI agent evaluation framework. Documentation: [attest-framework.github.io](https://attest-framework.github.io/).
+Small, copyable examples for [Attest](https://github.com/attest-framework/attest), a framework for testing what AI agents say, which tools they call, and what they change. Start with a no-key example, then choose the feature or framework you use. Documentation: [attest-framework.github.io](https://attest-framework.github.io/).
 
-This repository holds one small, copyable example per feature or framework and pins the latest stable release, 1.1.0 (`attest-ai==1.1.0` and `@attest-ai/core` / `@attest-ai/vitest` `1.1.0`). For one end-to-end story — incident, reproduction, fix, blocked regression — see [refund-desk](https://github.com/attest-framework/refund-desk).
+All 27 runnable examples pin the stable **1.1.0** release: Python uses `attest-ai==1.1.0`; TypeScript uses `@attest-ai/core` and `@attest-ai/vitest` at `1.1.0`. The `scripted-model/` helper supports capture without a real model. For an incident, reproduction, fix and blocked regression in one application, see [refund-desk](https://github.com/attest-framework/refund-desk).
 
-| Repo | Role | Tracks |
-|---|---|---|
-| `attest-examples` | One small, copyable example per feature or framework | Latest published release |
-| [`refund-desk`](https://github.com/attest-framework/refund-desk) | One end-to-end story: incident → reproduction → fix → blocked regression | attest `main` until 1.0.0, then 1.0.x |
-
-To add Attest to your own project:
+To add Attest to your own project instead of running this repository:
 
 ```bash
-uv add "attest-ai==1.1.0"                                                   # Python
-npm install -D "@attest-ai/core@1.1.0" "@attest-ai/vitest@1.1.0" vitest # TypeScript
+# Python
+uv add "attest-ai>=1.1.0" pytest
+
+# TypeScript
+npm install -D "@attest-ai/core@>=1.1.0" "@attest-ai/vitest@>=1.1.0" "vitest@^4"
 ```
 
----
+## Start here
 
-## Getting Started
-
-Start with [quickstart/](quickstart/) — a minimal end-to-end example that runs a single assertion against a live agent response.
+Install [uv](https://docs.astral.sh/uv/) for Python examples, or [pnpm](https://pnpm.io/) and Node.js for TypeScript (CI uses Node.js 22 and pnpm 10). Run the Python commands below from the repository root:
 
 ```bash
 make setup EXAMPLE=quickstart
 make test EXAMPLE=quickstart
 ```
 
-See [quickstart/README.md](quickstart/README.md) for a step-by-step walkthrough.
+The [quickstart walkthrough](quickstart/README.md) uses a scripted customer-support agent. It does not call a model or need an API key, and checks output shape, budgets, tool calls and message content.
 
----
-
-## Assertion Layers
-
-Each example targets a specific layer of Attest's assertion stack.
-
-| Example                                            | Layer                      | Description                                               |
-| -------------------------------------------------- | -------------------------- | --------------------------------------------------------- |
-| [semantic-similarity/](semantic-similarity/)       | L5 — Embeddings            | Cosine-similarity checks on response vectors              |
-| [rag-chatbot/](rag-chatbot/)                       | L5 + Retrieval             | Embedding assertions combined with retrieval faithfulness |
-| [llm-judge/](llm-judge/)                           | L6 — Quality gates         | LLM-as-judge scoring with pass/fail thresholds            |
-| [simulation/](simulation/)                         | L7 — Mock tools & personas | Simulated tool calls and synthetic user personas          |
-| [multi-agent-workflow/](multi-agent-workflow/)     | L8 — Trace trees           | Assertion over multi-hop agent trace graphs               |
-| [customer-service-agent/](customer-service-agent/) | All 8 layers               | Full-stack evaluation across every assertion layer        |
-| [relational-effects/](relational-effects/)             | L3 — World effects         | Sum partial refunds per order and match notification recipients |
-
----
-
-## Framework Integrations
-
-| Example                                | Description                                     |
-| -------------------------------------- | ----------------------------------------------- |
-| [langchain-agent/](langchain-agent/)   | Wrap a LangChain agent with Attest assertions   |
-| [llamaindex-agent/](llamaindex-agent/) | Evaluate a LlamaIndex query pipeline            |
-| [google-adk/](google-adk/)             | Assert over Google Agent Development Kit agents |
-| [crewai-adapter/](crewai-adapter/)     | Plug Attest into a CrewAI multi-agent crew      |
-
----
-
-## Framework capture through OpenTelemetry
-
-These frameworks are captured with `attest capture` through their own OpenTelemetry instrumentation, with no attest-specific adapter. Each example commits its fixture and the test `attest capture` drafted; all but the Claude Agent SDK examples also commit a strict replay test that runs the real agent with zero model calls and no provider key (Claude Code puts the working directory, OS and date into its requests, which replay does not normalize yet; see those READMEs). Re-capture against [`scripted-model/`](scripted-model/), a stdlib model server.
-
-CI runs each with `0 live model calls` asserted from its report: the five examples with a replay test must show a replay summary with every call replayed, and the two Claude Agent SDK examples must show no live call and every assertion passing.
-
-| Example | Framework | Instrumentation | Run |
-|---|---|---|---|
-| [pydantic-ai/](pydantic-ai/) | Pydantic AI (Python) | native `InstrumentationSettings(version=5)` | `make test EXAMPLE=pydantic-ai` |
-| [vercel-ai-ts/](vercel-ai-ts/) | Vercel AI SDK (TypeScript) | native `@ai-sdk/otel` | `cd vercel-ai-ts && pnpm install && pnpm test` |
-| [mastra-ts/](mastra-ts/) | Mastra (TypeScript) | native `@mastra/otel-exporter` | `cd mastra-ts && pnpm install && pnpm test` |
-| [claude-agent-sdk/](claude-agent-sdk/) | Claude Agent SDK (Python) | Claude Code native traces (beta); no replay test, see its README | `make test EXAMPLE=claude-agent-sdk` |
-| [claude-agent-sdk-ts/](claude-agent-sdk-ts/) | Claude Agent SDK (TypeScript) | Claude Code native traces (beta); no replay test, see its README | `cd claude-agent-sdk-ts && pnpm install && pnpm test` |
-| [openai-agents/](openai-agents/) | OpenAI Agents SDK (Python) | `opentelemetry-instrumentation-openai-agents-v2` (alpha) | `make test EXAMPLE=openai-agents` |
-| [langgraph/](langgraph/) | LangGraph (Python) | LangSmith in OTel mode, local exporter only | `make test EXAMPLE=langgraph` |
-
----
-
-## Production Patterns
-
-| Example                              | Description                                   |
-| ------------------------------------ | --------------------------------------------- |
-| [continuous-eval/](continuous-eval/) | Run assertions in CI on every deployment      |
-| [drift-detection/](drift-detection/) | Alert on assertion score regression over time |
-| [plugin-system/](plugin-system/)     | Register custom assertion plugins             |
-
----
-
-## TypeScript Examples
-
-TypeScript ports using `@attest-ai/core` and `@attest-ai/vitest` with vitest.
-
-| Example                                              | Description                                    |
-| ---------------------------------------------------- | ---------------------------------------------- |
-| [quickstart-ts/](quickstart-ts/)                     | Customer support agent — layers 1-4            |
-| [openai-adapter-ts/](openai-adapter-ts/)             | OpenAI chat + tool calling traces              |
-| [schema-assertions-ts/](schema-assertions-ts/)       | Layer 1 schema validation (output, fields, tools) |
-| [content-assertions-ts/](content-assertions-ts/)     | Layer 4 content checks (keywords, regex, forbids) |
-| [relational-effects-ts/](relational-effects-ts/)     | Relational world effects: refund totals and recipients |
+For TypeScript, enter the example directory first:
 
 ```bash
-cd quickstart-ts && pnpm install && pnpm test
+cd quickstart-ts
+pnpm install
+npx attest doctor
+pnpm test
 ```
 
----
+Run `npx attest doctor` once before your first TypeScript test: it downloads and checks the matching engine outside Vitest's default 5-second test timeout. Without this warm-up, the first download on a cold machine can time out. It does not call a judge or a model.
 
-## Running Examples
+**Offline** below means no model-provider requests once dependencies, the engine and any local embedding model are installed. Initial installation and engine download need network access. It does not mean `ATTEST_SIMULATION=1`: deterministic assertions normally run against the real engine.
+
+## Python examples
+
+Each row's commands run from the repository root. `make setup` runs `uv sync` in that example; `make test` runs `uv run pytest -v`. You can run those same `uv` commands directly from the example directory. Most examples require Python 3.10 or later; framework examples may require a newer version, as specified in their `pyproject.toml`.
+
+| Example | What it shows / feature guide | API key or offline behavior | Run |
+| --- | --- | --- | --- |
+| [quickstart](quickstart/) | Test a scripted refund agent's output, budgets, tools and content; [test and evaluation basics](https://github.com/attest-framework/attest/blob/main/docs/guides/verdicts.md). | Offline; no key. | `make setup EXAMPLE=quickstart && make test EXAMPLE=quickstart` |
+| [customer-service-agent](customer-service-agent/) | Test a refund flow that delegates to a specialist, including output and cross-agent budgets; [multi-agent assertions](https://github.com/attest-framework/attest/blob/main/docs/guides/multi-agent.md). | Offline; no key. Covers layers 1–4, including trace-tree checks within layer 3. | `make setup EXAMPLE=customer-service-agent && make test EXAMPLE=customer-service-agent` |
+| [semantic-similarity](semantic-similarity/) | Compare translations and summaries by meaning rather than exact text; [embedding configuration](https://github.com/attest-framework/attest/blob/main/docs/guides/configuration.md). | L5 needs an embedding provider: OpenAI needs a key; local ONNX needs its model/runtime. Without a provider, tests skip as not evaluated. | `make setup EXAMPLE=semantic-similarity && make test EXAMPLE=semantic-similarity` |
+| [rag-chatbot](rag-chatbot/) | Check a scripted retrieval-and-answer trace, then judge whether its answer is grounded; [judges](https://github.com/attest-framework/attest/blob/main/docs/guides/judges.md) and [embeddings](https://github.com/attest-framework/attest/blob/main/docs/guides/configuration.md). | Basic checks are offline; L5/L6 tests need configured providers or skip as not evaluated. | `make setup EXAMPLE=rag-chatbot && make test EXAMPLE=rag-chatbot` |
+| [llm-judge](llm-judge/) | Score complaint responses and moderation decisions against a rubric; [LLM judges](https://github.com/attest-framework/attest/blob/main/docs/guides/judges.md). | Needs a configured judge; no provider means not-evaluated skips. Hosted judges can cost money. | `make setup EXAMPLE=llm-judge && make test EXAMPLE=llm-judge` |
+| [simulation](simulation/) | Replace flight-booking tools with controlled responses and inspect built-in user personas; [simulation](https://github.com/attest-framework/attest/blob/main/docs/guides/simulation.md). | Offline; no key. Mock tools/personas are not a numbered assertion layer. | `make setup EXAMPLE=simulation && make test EXAMPLE=simulation` |
+| [multi-agent-workflow](multi-agent-workflow/) | Check researcher/writer delegation, trace-tree structure and combined budgets; [multi-agent assertions (L3)](https://github.com/attest-framework/attest/blob/main/docs/guides/multi-agent.md). | Offline; no key. | `make setup EXAMPLE=multi-agent-workflow && make test EXAMPLE=multi-agent-workflow` |
+| [relational-effects](relational-effects/) | Sum partial refunds per order and match notification recipients in a local payments service; [world-effect contracts](https://github.com/attest-framework/attest/blob/main/docs/guides/world-fixtures.md#relational-effects-totals-and-recipients). | No key or model; real HTTP to an isolated local world. | `make setup EXAMPLE=relational-effects && make test EXAMPLE=relational-effects` |
+| [langchain-agent](langchain-agent/) | Capture a live LangChain agent with callbacks and assert on its trace; [framework adapters](https://github.com/attest-framework/attest/blob/main/docs/guides/framework-adapters.md). | Needs `OPENAI_API_KEY`; otherwise tests skip. Live calls can cost money. | `make setup EXAMPLE=langchain-agent && make test EXAMPLE=langchain-agent` |
+| [llamaindex-agent](llamaindex-agent/) | Capture and test a live LlamaIndex query pipeline; [framework adapters](https://github.com/attest-framework/attest/blob/main/docs/guides/framework-adapters.md). | Needs `OPENAI_API_KEY`; otherwise tests skip. Live calls can cost money. | `make setup EXAMPLE=llamaindex-agent && make test EXAMPLE=llamaindex-agent` |
+| [google-adk](google-adk/) | Turn Google ADK agent events into a trace and test it; [framework adapters](https://github.com/attest-framework/attest/blob/main/docs/guides/framework-adapters.md). | Needs `GOOGLE_API_KEY` or `GEMINI_API_KEY`; otherwise tests skip. Live calls can cost money. | `make setup EXAMPLE=google-adk && make test EXAMPLE=google-adk` |
+| [crewai-adapter](crewai-adapter/) | Test manually built crew traces that illustrate what a CrewAI adapter captures; [framework adapters](https://github.com/attest-framework/attest/blob/main/docs/guides/framework-adapters.md). | Offline; no key or CrewAI installation required for these tests. | `make setup EXAMPLE=crewai-adapter && make test EXAMPLE=crewai-adapter` |
+| [pydantic-ai](pydantic-ai/) | Record native OpenTelemetry spans, check the fixture and replay the real Pydantic AI agent; [capture](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks) / [replay](https://github.com/attest-framework/attest/blob/main/docs/guides/replay.md). | Offline fixture + strict replay; no key. | `make setup EXAMPLE=pydantic-ai && make test EXAMPLE=pydantic-ai` |
+| [openai-agents](openai-agents/) | Capture OpenAI Agents SDK spans through alpha OTel instrumentation, then replay the agent; [capture](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks) / [replay](https://github.com/attest-framework/attest/blob/main/docs/guides/replay.md). | Offline fixture + strict replay; no key. | `make setup EXAMPLE=openai-agents && make test EXAMPLE=openai-agents` |
+| [langgraph](langgraph/) | Capture LangGraph through LangSmith's local OTel mode, then replay the agent; [capture](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks) / [replay](https://github.com/attest-framework/attest/blob/main/docs/guides/replay.md). | Offline fixture + strict replay; no key or hosted LangSmith service. | `make setup EXAMPLE=langgraph && make test EXAMPLE=langgraph` |
+| [claude-agent-sdk](claude-agent-sdk/) | Check a Claude Agent SDK capture and its subprocess environment isolation; [capture](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks). | Offline recorded-trace + environment tests; no key. No real-agent replay test; see its README. | `make setup EXAMPLE=claude-agent-sdk && make test EXAMPLE=claude-agent-sdk` |
+| [continuous-eval](continuous-eval/) | Queue and evaluate traces in a background runner with sampling; [continuous evaluation](https://github.com/attest-framework/attest/blob/main/docs/guides/continuous-eval.md). | Offline; no key. | `make setup EXAMPLE=continuous-eval && make test EXAMPLE=continuous-eval` |
+| [drift-detection](drift-detection/) | Compare baseline and degraded traces against cost, token and latency budgets; [continuous-evaluation drift concepts](https://github.com/attest-framework/attest/blob/main/docs/guides/continuous-eval.md). | Offline; no key. A manual comparison, not an alerting service or persisted CLI baseline. | `make setup EXAMPLE=drift-detection && make test EXAMPLE=drift-detection` |
+| [plugin-system](plugin-system/) | Register and directly test custom profanity, response-length and efficiency checks; [plugins](https://github.com/attest-framework/attest/blob/main/docs/guides/plugins.md). | Offline; no key. | `make setup EXAMPLE=plugin-system && make test EXAMPLE=plugin-system` |
+
+## TypeScript examples
+
+Run each command from the repository root; it enters the example directory. Every package defines `test` (`vitest run`) and `typecheck` (`tsc --noEmit`), so you can also run `pnpm typecheck` there. The commands include the first-run engine warm-up described above.
+
+| Example | What it shows / feature guide | API key or offline behavior | Run |
+| --- | --- | --- | --- |
+| [quickstart-ts](quickstart-ts/) | Test a scripted refund agent's schema, budgets, tools and content; [test and evaluation basics](https://github.com/attest-framework/attest/blob/main/docs/guides/verdicts.md). | Offline; no key. | `cd quickstart-ts && pnpm install && npx attest doctor && pnpm test` |
+| [schema-assertions-ts](schema-assertions-ts/) | Validate output schemas, individual fields and tool arguments/results; [assertion verdicts](https://github.com/attest-framework/attest/blob/main/docs/guides/verdicts.md). | Offline; no key. | `cd schema-assertions-ts && pnpm install && npx attest doctor && pnpm test` |
+| [content-assertions-ts](content-assertions-ts/) | Check required keywords, regular expressions and forbidden output text; [assertion verdicts](https://github.com/attest-framework/attest/blob/main/docs/guides/verdicts.md). | Offline; no key. | `cd content-assertions-ts && pnpm install && npx attest doctor && pnpm test` |
+| [openai-adapter-ts](openai-adapter-ts/) | Build OpenAI-shaped chat and tool-calling traces by hand, then assert on them; [framework adapters](https://github.com/attest-framework/attest/blob/main/docs/guides/framework-adapters.md). | Offline; no key. These tests do not call the OpenAI adapter or API. | `cd openai-adapter-ts && pnpm install && npx attest doctor && pnpm test` |
+| [relational-effects-ts](relational-effects-ts/) | Check refund totals and notification recipients across related rows; [world-effect contracts](https://github.com/attest-framework/attest/blob/main/docs/guides/world-fixtures.md#relational-effects-totals-and-recipients). | No key or model; real HTTP to an isolated local world. | `cd relational-effects-ts && pnpm install && npx attest doctor && pnpm test` |
+| [vercel-ai-ts](vercel-ai-ts/) | Capture Vercel AI SDK 7 native OTel spans and replay the real agent; [capture](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks) / [replay](https://github.com/attest-framework/attest/blob/main/docs/guides/replay.md). | Offline fixture + strict replay; no key. | `cd vercel-ai-ts && pnpm install && npx attest doctor && pnpm test` |
+| [mastra-ts](mastra-ts/) | Capture Mastra's native OTel spans and replay the real agent; [capture](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks) / [replay](https://github.com/attest-framework/attest/blob/main/docs/guides/replay.md). | Offline fixture + strict replay; no key. | `cd mastra-ts && pnpm install && npx attest doctor && pnpm test` |
+| [claude-agent-sdk-ts](claude-agent-sdk-ts/) | Check a Claude Agent SDK capture and its subprocess environment isolation; [capture](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks). | Offline recorded-trace + environment tests; no key. No real-agent replay test; see its README. | `cd claude-agent-sdk-ts && pnpm install && npx attest doctor && pnpm test` |
+
+## Capture helper
+
+| Directory | What it shows / feature guide | API key or offline behavior | Run from the repository root |
+| --- | --- | --- | --- |
+| [scripted-model](scripted-model/) | Serve fixed OpenAI/Anthropic responses while recording framework fixtures; [capture](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md). | Local server; no real key or model. Not a test project. | `python3 scripted-model/server.py --port 8791` (stop with Ctrl-C); see framework READMEs for capture commands. |
+
+`assets/` holds the README banner, not an example.
+
+The seven OTel framework examples commit the fixture and contracts drafted by capture. Five also run the real agent in strict replay, with provider egress blocked. The two Claude Agent SDK examples instead test recorded traces and environment isolation: Claude Code includes machine/date-specific request text that strict replay does not normalize. Their READMEs explain the limitation. Re-capture against the local `scripted-model/` helper; running committed tests does not require capture first.
+
+## Providers and simulation
+
+No real provider key is needed for the default CI run. Tests that need a live agent are skipped without the key listed in the table. Missing embedding or judge providers produce `not_evaluated: provider_not_configured`, and pytest skips the affected tests rather than calling them passes. Provider configuration is documented in [judges](https://github.com/attest-framework/attest/blob/main/docs/guides/judges.md) and [engine configuration](https://github.com/attest-framework/attest/blob/main/docs/guides/configuration.md).
+
+If you want deterministic assertion checks only, run a synthetic example in simulation mode:
 
 ```bash
-# Set up and test a single example
-make setup EXAMPLE=llm-judge
-make test  EXAMPLE=llm-judge
-
-# Run all examples in sequence
-make test-all
+ATTEST_SIMULATION=1 make test EXAMPLE=rag-chatbot
 ```
 
-### Relational world effects
+Simulation evaluates deterministic layers 1–4, including trace-tree and world-effect checks in layer 3, but marks L5/L6 as not evaluated. It does not replace a framework's own live model calls, so it does not make the three live-key examples offline. Mock tools and personas in `simulation/` are runtime features, not assertion layers. The six evaluated layers are schema (L1), constraints (L2), trace and behavioral checks (L3), content (L4), embeddings (L5), and LLM judge (L6), plus custom plugins.
 
-[`relational-effects/`](relational-effects/) and
-[`relational-effects-ts/`](relational-effects-ts/) issue two partial refunds and a
-notification through real HTTP to a local, stateful payments world. No model or
-provider key is used. The `sum` check groups refunds by `order_id` and compares
-their total with the related order's amount; `matches` compares the notification
-recipient with that order's customer. Checking each tool call alone cannot prove
-either invariant.
-
-```bash
-make setup EXAMPLE=relational-effects
-make test EXAMPLE=relational-effects
-cd relational-effects-ts && pnpm install && pnpm typecheck && pnpm test
-```
-
-Each test starts an isolated world from `payments.world.yaml`; the two orders
-have different amounts and customers. Changing the second refund to the full
-order amount makes `sum` fail; sending the notification to the other customer
-makes `matches` fail. See the
-[relational effects guide](https://github.com/attest-framework/attest/blob/main/docs/guides/world-fixtures.md#relational-effects-totals-and-recipients)
-and [refund-desk](https://github.com/attest-framework/refund-desk) for a full incident.
-
-Requires [uv](https://github.com/astral-sh/uv) for Python and [pnpm](https://pnpm.io) for TypeScript.
-
-No API key is needed. Every example evaluates against the real Attest engine: schema, constraint, trace, content and trace-tree assertions (layers 1–4 and 7) run on every test. Without a provider key, tests that also use embeddings (L5) or an LLM judge (L6) are skipped as `not evaluated: provider_not_configured`, and the framework examples that call a live model (`langchain-agent`, `llamaindex-agent`, `google-adk`) are skipped with the key they need. Export the keys listed in [`.env.example`](.env.example) to run them.
+`make test-all` sets up and tests every Python example in sequence; it does not run TypeScript examples or the scripted server. Live-key examples can make paid calls if their keys are configured, so choose a single offline example when that is not intended.
 
 ## CI
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs each example on the pinned release, writes an Attest report, evaluates [`attest.policy.yaml`](attest.policy.yaml) (any hard failure blocks; not-evaluated assertions warn) and, in a separate job that holds the only write permission, posts one summary comment and annotates each failed assertion at its test's line (`pr-annotate` v2). An advisory `edge` job runs the same examples against attest `main`.
+[Examples CI](.github/workflows/ci.yml) runs on every pull request, including documentation-only changes, and on pushes to `main`. It runs all 19 Python and eight TypeScript projects against their pinned release, asserts zero live model calls, uploads Attest reports and evaluates [`attest.policy.yaml`](attest.policy.yaml). TypeScript jobs warm the engine with `attest doctor` before typechecking and testing.
 
-Pull requests compare against the latest main run's reports (`--baseline main`): an assertion that passed on main and no longer passes, or that disappeared, blocks the merge.
+A separate annotation job holds the only pull-request write permission. It posts a summary and failure annotations without running example code. An advisory `edge` job runs all Python and TypeScript examples against attest `main`.
 
----
+Pull requests compare against main's reports (`--baseline main`): a previously passing assertion that stops passing, or a removed assertion, blocks the merge. Not-evaluated assertions warn under this repository's policy; a warning is not proof that the check passed. See [merge gates](https://github.com/attest-framework/attest/blob/main/docs/guides/merge-gate.md) and [policies](https://github.com/attest-framework/attest/blob/main/docs/guides/policies.md).
 
 ## Related
 
-- [attest](https://github.com/attest-framework/attest) — SDK and core framework
-- [attest-bench](https://github.com/attest-framework/attest-bench) — Benchmarks (private, for contributors)
+- [attest](https://github.com/attest-framework/attest) — SDKs, engine and feature guides
+- [refund-desk](https://github.com/attest-framework/refund-desk) — End-to-end double-refund regression example
 - [attest-ai on PyPI](https://pypi.org/project/attest-ai/)
-
----
 
 ## License
 

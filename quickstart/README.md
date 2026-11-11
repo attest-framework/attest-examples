@@ -1,10 +1,10 @@
 # Attest Quickstart Example
 
-A minimal example demonstrating Attest's assertion DSL for testing AI agents.
+A small customer-support agent with fixed responses, demonstrating Attest 1.1.0's assertion DSL. No model calls or API keys are needed: the tests check what the agent returns and which tools it calls.
 
 ## Setup
 
-Install dependencies:
+Run these commands from `quickstart/`. Install the pinned dependencies:
 
 ```bash
 uv sync
@@ -43,7 +43,7 @@ The example includes a simple customer support agent that:
 
 ## Assertions Demonstrated
 
-The test showcases assertions across all evaluation layers:
+The tests cover the four deterministic assertion layers below:
 
 - **Layer 1 (Schema)**: Output matches a JSON Schema
 - **Layer 2 (Constraints)**: Cost, latency, and token budgets
@@ -63,12 +63,13 @@ This example uses manual trace construction via the `@agent` decorator and `Trac
 
 ## Testing Existing Agents
 
-The `@agent` decorator and `TraceBuilder` injection pattern shown here is designed for **synthetic agents** — agents built from scratch with Attest testability in mind. No actual LLM calls are made.
+The `@agent` decorator and `TraceBuilder` injection pattern shown here lets you record steps in an agent you control. This example uses scripted responses rather than an LLM, so failures are repeatable without paying for model calls.
 
-To test **existing agents** from real orchestration frameworks without modifying agent code, use the framework-specific adapters:
+For an existing framework agent, choose an adapter that captures framework events, or capture its OpenTelemetry spans without an attest-specific adapter:
 
-- [`examples/langchain-agent/`](../langchain-agent/) — Test LangChain/LangGraph agents via callback handler
-- [`examples/google-adk/`](../google-adk/) — Test Google ADK agents via async event stream capture
-- [`examples/llamaindex-agent/`](../llamaindex-agent/) — Test LlamaIndex RAG agents via instrumentation dispatcher
+- [`langchain-agent/`](../langchain-agent/) — Capture a live LangChain agent via callbacks; requires `OPENAI_API_KEY`.
+- [`google-adk/`](../google-adk/) — Capture live Google ADK agent events; requires `GOOGLE_API_KEY` or `GEMINI_API_KEY`.
+- [`llamaindex-agent/`](../llamaindex-agent/) — Capture a live LlamaIndex query pipeline; requires `OPENAI_API_KEY`.
+- [`langgraph/`](../langgraph/) — Run committed capture and strict-replay tests offline, using LangSmith's local OpenTelemetry mode.
 
-Each adapter captures traces externally — the agent code remains untouched.
+See the [framework adapter guide](https://github.com/attest-framework/attest/blob/main/docs/guides/framework-adapters.md) and [capture guide](https://github.com/attest-framework/attest/blob/main/docs/guides/capture.md#frameworks) for the supported routes.
